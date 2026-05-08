@@ -95,7 +95,7 @@ class _OnboardingState extends State<Onboarding> {
                   children: [
                     Container(
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8)
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       clipBehavior: Clip.hardEdge,
                       child: Image(
@@ -116,7 +116,9 @@ class _OnboardingState extends State<Onboarding> {
                   ],
                 ),
                 Text(
-                   _allGranted ? 'All set to go.' : 'Provide some permission\nto run this app smoothly.',
+                  _allGranted
+                      ? 'All set to go.'
+                      : 'Provide some permission\nto run this app smoothly.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 16,
@@ -137,8 +139,8 @@ class _OnboardingState extends State<Onboarding> {
                   Row(
                     children: [
                       Expanded(
-                        child: LButton(
-                          variant: LButtonVariant.primary,
+                        child: DButton(
+                          variant: DButtonVariant.primary,
                           disabled: _requesting,
                           onPressed: _requestPermissions,
                           child: const Text('Enable Permissions'),
@@ -150,8 +152,8 @@ class _OnboardingState extends State<Onboarding> {
                   Row(
                     children: [
                       Expanded(
-                        child: LButton(
-                          variant: LButtonVariant.success,
+                        child: DButton(
+                          variant: DButtonVariant.success,
                           onPressed: _completeOnboarding,
                           child: const Text("Let's go"),
                         ),

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:dinoshare/style/typography.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:forui/forui.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -98,20 +99,20 @@ class _TransferState extends State<Transfer> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              LHeader(
+              DHeader(
                 nested: true,
                 suffix: [
                   if (!isStopped)
-                    LButton(
-                      size: LButtonSize.xs,
-                      variant: LButtonVariant.destructive,
+                    DButton(
+                      size: DButtonSize.xs,
+                      variant: DButtonVariant.destructive,
                       child: Text('Stop'),
                       onPressed: () => transferService.stopActiveTransfer(),
                     )
                   else
-                    LButton(
-                      size: LButtonSize.xs,
-                      variant: LButtonVariant.ghost,
+                    DButton(
+                      size: DButtonSize.xs,
+                      variant: DButtonVariant.ghost,
                       child: Text('Done'),
                       onPressed:
                           () => Navigator.of(
@@ -119,52 +120,40 @@ class _TransferState extends State<Transfer> {
                           ).popUntil((route) => route.isFirst),
                     ),
                 ],
-                child: Text(title),
+                title: title,
               ),
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Column(
                   spacing: 12,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 11),
+                      padding: EdgeInsets.symmetric(horizontal: 15),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
+                          DText(
                             speedLabel,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: theme.colors.secondaryForeground,
-                              height: 1.2,
-                              fontFeatures: [FontFeature.tabularFigures()],
-                            ),
+                            color: theme.colors.secondaryForeground,
+                            fontFeatures: [FontFeature.tabularFigures()],
                           ),
-                          Text(
+                          DText(
                             etaLabel,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: theme.colors.secondaryForeground,
-                              height: 1.2,
-                              fontFeatures: [FontFeature.tabularFigures()],
-                            ),
+                            color: theme.colors.secondaryForeground,
+                            fontFeatures: [FontFeature.tabularFigures()],
                           ),
                         ],
                       ),
                     ),
-                    LProgressbar(value: progressPct, label: progressLabel),
+                    DProgressbar(value: progressPct, label: progressLabel),
                     Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 12),
-                      child: Text(
-                        currentFile.isEmpty ? '—' : currentFile,
+                      padding: EdgeInsets.symmetric(horizontal: 15),
+                      child: DText(
+                        currentFile.isEmpty ? 'NA' : currentFile,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: theme.colors.mutedForeground,
-                          height: 1.2,
-                        ),
+                        color: theme.colors.mutedForeground,
                       ),
                     ),
                   ],
@@ -172,24 +161,21 @@ class _TransferState extends State<Transfer> {
               ),
               if (isStopped)
                 Padding(
-                  padding: EdgeInsets.fromLTRB(20, 0, 20, 12),
+                  padding: EdgeInsets.fromLTRB(16, 0, 16, 12),
                   child: _buildStopBanner(
                     theme,
                     session?.error ?? 'Transfer stopped',
                   ),
                 ),
               Padding(
-                padding: EdgeInsets.fromLTRB(32, 4, 32, 12),
-                child: Text(
-                  'Files',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                ),
+                padding: EdgeInsets.fromLTRB(28, 8, 28, 8),
+                child: DText('Files', weight: FontWeight.w500),
               ),
               Expanded(
                 child: SingleChildScrollView(
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20),
-                    child: LItemList(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: DItemList(
                       borderRadius: BorderRadius.circular(14),
                       children:
                           session == null
@@ -246,7 +232,7 @@ class _TransferState extends State<Transfer> {
         previewPath.isNotEmpty &&
         (session.role == TransferRole.sending || completedItem != null);
 
-    return LItem(
+    return DItem(
       disabled: isPending,
       padding: EdgeInsets.fromLTRB(8, 8, 16, 8),
       prefix: FileThumbnail(
@@ -264,7 +250,7 @@ class _TransferState extends State<Transfer> {
           isInProgress
               ? Padding(
                 padding: EdgeInsets.symmetric(horizontal: 4),
-                child: LCircularProgress(value: item.progress * 100, size: 24),
+                child: DCircularProgress(value: item.progress * 100, size: 24),
               )
               : null,
       onPressed: canOpen ? () => openStoredFile(completedItem!.path) : null,
@@ -296,16 +282,7 @@ class _TransferState extends State<Transfer> {
             size: 20,
             color: theme.colors.destructive,
           ),
-          Expanded(
-            child: Text(
-              message,
-              style: TextStyle(
-                fontSize: 14,
-                color: theme.colors.destructive,
-                height: 1.3,
-              ),
-            ),
-          ),
+          Expanded(child: DText(message, color: theme.colors.destructive)),
         ],
       ),
     );

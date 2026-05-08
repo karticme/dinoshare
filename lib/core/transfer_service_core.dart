@@ -13,6 +13,8 @@ class DinoshareTransferService {
   DinoshareTransferService._();
   static final DinoshareTransferService instance = DinoshareTransferService._();
 
+  static const String _kDeviceId = 'device_id';
+
   // ── Public observables ───────────────────────────────────────────────────
   final ValueNotifier<List<PeerDevice>> discoveredPeers = ValueNotifier(
     <PeerDevice>[],
@@ -95,7 +97,7 @@ class DinoshareTransferService {
   Future<void> initialize() async {
     if (_initialized) return;
     _initialized = true;
-    _deviceId = _buildDeviceId();
+    _deviceId = await _loadOrCreateDeviceId();
     _receiveBasePath = await defaultReceiveDirectory();
     _controlPort = await _pickFreePort();
 
@@ -554,6 +556,18 @@ class DinoshareTransferService {
 
   String _buildDeviceId() {
     return '${DateTime.now().microsecondsSinceEpoch}-${Random.secure().nextInt(999999999)}';
+  }
+
+  Future<String> _loadOrCreateDeviceId() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString(_kDeviceId);
+    if (saved != null && saved.trim().isNotEmpty) {
+      return saved.trim();
+    }
+
+    final generated = _buildDeviceId();
+    await prefs.setString(_kDeviceId, generated);
+    return generated;
   }
 
   Future<String> localIpAddress() async {

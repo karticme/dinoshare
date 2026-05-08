@@ -19,12 +19,9 @@ extension DiscoveryX on DinoshareTransferService {
     } catch (_) {}
     unawaited(_startBonjourDiscovery());
     _discoverTimer?.cancel();
-    _discoverTimer = Timer.periodic(
-      const Duration(seconds: 2),
-      (_) {
-        runZonedGuarded(() => _sendDiscoverPing(), (_, _) {});
-      },
-    );
+    _discoverTimer = Timer.periodic(const Duration(seconds: 2), (_) {
+      runZonedGuarded(() => _sendDiscoverPing(), (_, _) {});
+    });
     _peerPruneTimer?.cancel();
     _peerPruneTimer = Timer.periodic(const Duration(seconds: 2), (_) {
       runZonedGuarded(() {

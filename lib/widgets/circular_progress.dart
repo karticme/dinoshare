@@ -3,14 +3,14 @@ import 'dart:math' as math;
 import 'package:flutter/widgets.dart';
 import 'package:forui/forui.dart';
 
-class LCircularProgress extends StatelessWidget {
+class DCircularProgress extends StatelessWidget {
   final double value;
   final double size;
   final double strokeWidth;
   final Color? color;
   final Color? backgroundColor;
 
-  const LCircularProgress({
+  const DCircularProgress({
     super.key,
     required this.value,
     required this.size,

@@ -12,7 +12,10 @@ extension BonjourX on DinoshareTransferService {
         port: _controlPort,
         attributes: {'id': _deviceId, 'dtype': _getDeviceTypeString()},
       );
-      _bonjourBroadcast = BonsoirBroadcast(service: service, printLogs: kDebugMode);
+      _bonjourBroadcast = BonsoirBroadcast(
+        service: service,
+        printLogs: kDebugMode,
+      );
       await _bonjourBroadcast!.ready;
       await _bonjourBroadcast!.start();
     } catch (e) {
@@ -31,7 +34,10 @@ extension BonjourX on DinoshareTransferService {
   Future<void> _startBonjourDiscovery() async {
     await _stopBonjourDiscovery();
     try {
-      _bonjourDiscovery = BonsoirDiscovery(type: _kBonjourType, printLogs: kDebugMode);
+      _bonjourDiscovery = BonsoirDiscovery(
+        type: _kBonjourType,
+        printLogs: kDebugMode,
+      );
       await _bonjourDiscovery!.ready;
       _bonjourDiscoverySub = _bonjourDiscovery!.eventStream!.listen(
         _handleBonjourEvent,
@@ -67,13 +73,16 @@ extension BonjourX on DinoshareTransferService {
       } catch (e) {
         debugPrint('[Bonjour] Resolve trigger failed: $e');
       }
-    } else if (event.type == BonsoirDiscoveryEventType.discoveryServiceResolved) {
+    } else if (event.type ==
+        BonsoirDiscoveryEventType.discoveryServiceResolved) {
       final s = event.service;
       if (s == null || s is! ResolvedBonsoirService) return;
       final attrs = s.attributes;
       final id = attrs['id'] ?? s.name;
       if (id == _deviceId) return;
-      debugPrint('[Bonjour] Service resolved: ${s.name} host=${s.host} port=${s.port}');
+      debugPrint(
+        '[Bonjour] Service resolved: ${s.name} host=${s.host} port=${s.port}',
+      );
       _addBonjourPeer(
         id: id,
         name: s.name,
@@ -81,8 +90,11 @@ extension BonjourX on DinoshareTransferService {
         port: s.port,
         deviceType: attrs['dtype'],
       );
-    } else if (event.type == BonsoirDiscoveryEventType.discoveryServiceResolveFailed) {
-      debugPrint('[Bonjour] Resolve failed for ${event.service?.name} — retrying');
+    } else if (event.type ==
+        BonsoirDiscoveryEventType.discoveryServiceResolveFailed) {
+      debugPrint(
+        '[Bonjour] Resolve failed for ${event.service?.name} — retrying',
+      );
       // Retry resolution after a short delay
       Future.delayed(const Duration(seconds: 2), () {
         if (_bonjourDiscovery != null && event.service != null) {
@@ -94,7 +106,8 @@ extension BonjourX on DinoshareTransferService {
     } else if (event.type == BonsoirDiscoveryEventType.discoveryServiceLost) {
       final s = event.service;
       if (s == null) return;
-      final attrs = (s is ResolvedBonsoirService) ? s.attributes : <String, String>{};
+      final attrs =
+          (s is ResolvedBonsoirService) ? s.attributes : <String, String>{};
       final id = attrs['id'] ?? s.name;
       debugPrint('[Bonjour] Service lost: ${s.name}');
       _bonjourPeerIds.remove(id);
@@ -112,31 +125,56 @@ extension BonjourX on DinoshareTransferService {
     String? deviceType,
   }) {
     // DNSServiceResolve returns a hostname like "MyDevice.local." — strip trailing dots
-    final host = rawHost.endsWith('.') ? rawHost.substring(0, rawHost.length - 1) : rawHost;
+    final host =
+        rawHost.endsWith('.')
+            ? rawHost.substring(0, rawHost.length - 1)
+            : rawHost;
 
     final addr = InternetAddress.tryParse(host);
     if (addr != null) {
-      _commitBonjourPeer(id: id, name: name, address: addr, port: port, deviceType: deviceType);
+      _commitBonjourPeer(
+        id: id,
+        name: name,
+        address: addr,
+        port: port,
+        deviceType: deviceType,
+      );
       return;
     }
 
     if (host.isEmpty) return;
 
     // hostname (e.g. "MyDevice.local") — resolve to IP, prefer IPv4
-    InternetAddress.lookup(host, type: InternetAddressType.IPv4).then((list) {
-      if (list.isNotEmpty) {
-        _commitBonjourPeer(id: id, name: name, address: list.first, port: port, deviceType: deviceType);
-      } else {
-        // fall back to any address type
-        return InternetAddress.lookup(host).then((any) {
-          if (any.isNotEmpty) {
-            _commitBonjourPeer(id: id, name: name, address: any.first, port: port, deviceType: deviceType);
+    InternetAddress.lookup(host, type: InternetAddressType.IPv4)
+        .then((list) {
+          if (list.isNotEmpty) {
+            _commitBonjourPeer(
+              id: id,
+              name: name,
+              address: list.first,
+              port: port,
+              deviceType: deviceType,
+            );
           } else {
-            debugPrint('[Bonjour] Could not resolve host: $host');
+            // fall back to any address type
+            return InternetAddress.lookup(host).then((any) {
+              if (any.isNotEmpty) {
+                _commitBonjourPeer(
+                  id: id,
+                  name: name,
+                  address: any.first,
+                  port: port,
+                  deviceType: deviceType,
+                );
+              } else {
+                debugPrint('[Bonjour] Could not resolve host: $host');
+              }
+            });
           }
+        })
+        .catchError((Object e) {
+          debugPrint('[Bonjour] DNS lookup failed for $host: $e');
         });
-      }
-    }).catchError((Object e) { debugPrint('[Bonjour] DNS lookup failed for $host: $e'); });
   }
 
   void _commitBonjourPeer({

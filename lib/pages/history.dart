@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:dinoshare/style/typography.dart';
 import 'package:flutter/widgets.dart';
 import 'package:forui/forui.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -25,12 +26,12 @@ class _HistoryState extends State<History> {
       color: theme.colors.secondary,
       child: Column(
         children: [
-          LHeader(
+          DHeader(
             nested: true,
             prefix: [
-              LButton(
-                size: Platform.isMacOS ? LButtonSize.sm : LButtonSize.md,
-                variant: LButtonVariant.ghost,
+              DButton(
+                size: Platform.isMacOS ? DButtonSize.sm : DButtonSize.md,
+                variant: DButtonVariant.ghost,
                 onPressed: () => Navigator.of(context).pop(),
                 child: HugeIcon(
                   icon: HugeIcons.strokeRoundedArrowLeft01,
@@ -38,7 +39,7 @@ class _HistoryState extends State<History> {
                 ),
               ),
             ],
-            child: Text('History'),
+            title: 'History',
           ),
           Expanded(
             child: ValueListenableBuilder<List<TransferHistoryItem>>(
@@ -66,9 +67,9 @@ class _HistoryState extends State<History> {
                     ],
                     Padding(
                       padding: EdgeInsets.symmetric(vertical: 24),
-                      child: LButton(
-                        variant: LButtonVariant.destructive,
-                        size: LButtonSize.sm,
+                      child: DButton(
+                        variant: DButtonVariant.destructive,
+                        size: DButtonSize.sm,
                         onPressed: clearTransferHistory,
                         child: Text('Delete History'),
                       ),
@@ -87,7 +88,7 @@ class _HistoryState extends State<History> {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        spacing: 8,
+        spacing: 12,
         children: [
           Container(
             width: 52,
@@ -105,14 +106,8 @@ class _HistoryState extends State<History> {
               ),
             ),
           ),
-          Text(
-            'No Transfer History',
-            style: TextStyle(
-              fontSize: 14,
-              color: theme.colors.mutedForeground,
-              height: 1.2,
-            ),
-          ),
+          DText('No Transfer History', color: theme.colors.mutedForeground),
+          SizedBox(height: 48),
         ],
       ),
     );

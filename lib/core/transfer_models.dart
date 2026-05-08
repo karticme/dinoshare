@@ -141,18 +141,22 @@ class TransferItemProgress {
 class IncomingTransferRequest {
   const IncomingTransferRequest({
     required this.sessionId,
+    required this.senderId,
     required this.senderName,
     required this.files,
     required this.totalBytes,
     required this.topLevelCount,
+    this.senderDeviceType,
     this.senderFullPower = false,
   });
 
   final String sessionId;
+  final String senderId;
   final String senderName;
   final List<TransferFileEntry> files;
   final int totalBytes;
   final int topLevelCount;
+  final String? senderDeviceType;
   final bool senderFullPower;
 }
 

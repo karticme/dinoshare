@@ -1,3 +1,4 @@
+import 'package:dinoshare/style/typography.dart';
 import 'package:flutter/widgets.dart';
 import 'package:forui/forui.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -28,7 +29,7 @@ class TransferHistoryGroupView extends StatelessWidget {
             ]
             : item.files;
 
-    return LItemList(
+    return DItemList(
       spacing: 2,
       borderRadius: BorderRadius.circular(14),
       children: [
@@ -45,7 +46,7 @@ class TransferHistoryGroupView extends StatelessWidget {
     final directionLabel =
         item.isSending ? 'To ${item.peerName}' : 'From ${item.peerName}';
 
-    return LItem(
+    return DItem(
       spacing: 6,
       minHeight: 32,
       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -55,19 +56,15 @@ class TransferHistoryGroupView extends StatelessWidget {
                 ? HugeIcons.strokeRoundedArrowUpRight03
                 : HugeIcons.strokeRoundedArrowDownLeft01,
         color: item.isSending ? lCustom.success : theme.colors.destructive,
-        size: 18,
+        size: 16,
         strokeWidth: 2,
       ),
-      title: Text(
+      title: DText(
         directionLabel,
+        size: DTextSize.sm,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: theme.typography.sm.copyWith(
-          color: theme.colors.foreground,
-          fontSize: 14,
-          fontWeight: FontWeight.w400,
-          height: 1.2,
-        ),
+        weight: FontWeight.w400,
       ),
     );
   }
@@ -75,30 +72,22 @@ class TransferHistoryGroupView extends StatelessWidget {
   Widget _buildFileItem(FThemeData theme, HistoryFileItem file) {
     final fileExists = file.path.isNotEmpty && storedFileExists(file.path);
 
-    return LItem(
+    return DItem(
       padding: EdgeInsets.fromLTRB(8, 8, 16, 8),
       spacing: 12,
       prefix: _buildFilePreview(theme, file),
-      title: Text(
+      title: DText(
         file.name,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: theme.typography.md.copyWith(
-          color: theme.colors.foreground,
-          fontSize: 16,
-          fontWeight: FontWeight.w400,
-          height: 1.2,
-        ),
+        weight: FontWeight.w500,
       ),
-      description: Text(
+      description: DText(
         appDataUnit.value.formatSize(file.sizeBytes),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: theme.typography.sm.copyWith(
-          color: theme.colors.mutedForeground,
-          fontSize: 14,
-          height: 1.2,
-        ),
+        color: theme.colors.mutedForeground,
+        weight: FontWeight.w400,
       ),
       onPressed: fileExists ? () => openStoredFile(file.path) : null,
     );

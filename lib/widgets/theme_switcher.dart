@@ -1,3 +1,4 @@
+import 'package:dinoshare/style/typography.dart';
 import 'package:flutter/widgets.dart';
 import 'package:forui/forui.dart';
 import 'package:dinoshare/util/platform_asset.dart';
@@ -68,16 +69,14 @@ class LThemeSwitcher extends StatelessWidget {
                         ),
                       ),
                     ),
-                    Text(
+                    DText(
                       themes[i],
-                      style: theme.typography.md.copyWith(
-                        color:
-                            themeModes[i] == currentTheme
-                                ? lCustom.success
-                                : theme.colors.mutedForeground,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
+                      size: DTextSize.sm,
+                      color:
+                          themeModes[i] == currentTheme
+                              ? lCustom.success
+                              : theme.colors.mutedForeground,
+                      weight: FontWeight.w500,
                     ),
                   ],
                 ),

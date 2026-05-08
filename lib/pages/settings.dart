@@ -1,6 +1,10 @@
 import 'dart:io';
+import 'package:dinoshare/style/svgs.dart';
+import 'package:dinoshare/style/typography.dart';
+import 'package:dinoshare/util/utility_function.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:forui/forui.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:dinoshare/state/state_index.dart';
@@ -9,7 +13,6 @@ import 'package:dinoshare/widgets/header.dart';
 import 'package:dinoshare/widgets/items.dart';
 import 'package:dinoshare/widgets/switch.dart';
 import 'package:dinoshare/widgets/theme_switcher.dart';
-import 'package:dinoshare/util/platform_asset.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../style/theme.dart';
@@ -48,8 +51,7 @@ class _SettingsState extends State<Settings> {
     }
   }
 
-  Future<void> _openSponsorLink() async {
-    final url = 'https://github.com/sponsors/01kartic';
+  Future<void> _openSponsorLink(String url) async {
     final uri = Uri.parse(url);
 
     if (Platform.isMacOS) {
@@ -103,7 +105,7 @@ class _SettingsState extends State<Settings> {
                     strokeAlign: BorderSide.strokeAlignOutside,
                   ),
                 ),
-                padding: EdgeInsets.fromLTRB(20, 12, 20, 0),
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Column(
                   spacing: 12,
                   children: [
@@ -120,27 +122,23 @@ class _SettingsState extends State<Settings> {
                         controller: controller,
                         children: [
                           Padding(
-                            padding: EdgeInsetsGeometry.all(12),
-                            child: Text(
+                            padding: EdgeInsetsGeometry.fromLTRB(8, 4, 8, 8),
+                            child: DText(
                               'Select Type',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                color: theme.colors.mutedForeground,
-                                height: 1.2,
-                              ),
+                              weight: FontWeight.w500,
+                              color: theme.colors.mutedForeground,
                             ),
                           ),
                           Padding(
                             padding: const EdgeInsets.only(bottom: 20),
-                            child: LItemList(
+                            child: DItemList(
                               borderRadius: BorderRadius.circular(14),
                               children:
                                   _unitOptions.map((unit) {
                                     return ValueListenableBuilder<DataUnitType>(
                                       valueListenable: appDataUnit,
                                       builder:
-                                          (_, current, _) => LItem(
+                                          (_, current, _) => DItem(
                                             title: Text(unit.label),
                                             prefix:
                                                 current == unit
@@ -148,19 +146,19 @@ class _SettingsState extends State<Settings> {
                                                       icon:
                                                           HugeIcons
                                                               .strokeRoundedTick02,
-                                                      size: 20,
+                                                      size: 22,
                                                       color: lCustom.success,
                                                       strokeWidth: 2,
                                                     )
                                                     : SizedBox(
-                                                      width: 20,
-                                                      height: 20,
+                                                      width: 22,
+                                                      height: 22,
                                                     ),
                                             onPressed: () async {
                                               await setDataUnit(unit);
-                                              // if (ctx2.mounted) {
-                                              //   Navigator.of(ctx2).pop();
-                                              // }
+                                              if (ctx2.mounted) {
+                                                Navigator.of(ctx2).pop();
+                                              }
                                             },
                                           ),
                                     );
@@ -181,17 +179,20 @@ class _SettingsState extends State<Settings> {
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
+    final lCustom = dinoCustomColors(
+      dark: theme.colors.brightness == Brightness.dark,
+    );
 
     return Container(
       color: theme.colors.secondary,
       child: Column(
         children: [
-          LHeader(
+          DHeader(
             nested: true,
             prefix: [
-              LButton(
-                size: Platform.isMacOS ? LButtonSize.sm : LButtonSize.md,
-                variant: LButtonVariant.ghost,
+              DButton(
+                size: Platform.isMacOS ? DButtonSize.sm : DButtonSize.md,
+                variant: DButtonVariant.ghost,
                 onPressed: () => Navigator.of(context).pop(),
                 child: HugeIcon(
                   icon: HugeIcons.strokeRoundedArrowLeft01,
@@ -199,39 +200,40 @@ class _SettingsState extends State<Settings> {
                 ),
               ),
             ],
-            child: Text('Settings'),
+            title: 'Settings',
           ),
           Expanded(
             child: ListView(
               children: [
                 Padding(
-                  padding: EdgeInsetsGeometry.symmetric(horizontal: 20),
+                  padding: EdgeInsetsGeometry.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   child: Column(
-                    spacing: 24,
+                    spacing: 20,
                     children: [
-                      // ── General ────────────────────────────────────────────
+                      // General
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         spacing: 8,
                         children: [
                           Padding(
-                            padding: EdgeInsetsGeometry.fromLTRB(12, 0, 12, 0),
-                            child: Text(
+                            padding: EdgeInsetsGeometry.symmetric(
+                              horizontal: 12,
+                            ),
+                            child: DText(
                               'General',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                color: theme.colors.mutedForeground,
-                                height: 1.2,
-                              ),
+                              weight: FontWeight.w500,
+                              color: theme.colors.mutedForeground,
                             ),
                           ),
-                          LItemList(
+                          DItemList(
                             borderRadius: BorderRadius.circular(14),
                             children: [
                               // Device name
-                              LItem(
-                                title: Text('Device Name'),
+                              DItem(
+                                title: DText('Device Name'),
                                 suffix: SizedBox(
                                   width: 160,
                                   child: FTextField(
@@ -259,8 +261,8 @@ class _SettingsState extends State<Settings> {
                                       contentTextStyle: FVariantsDelta.delta([
                                         FVariantOperation.all(
                                           TextStyleDelta.delta(
-                                            letterSpacing: 0,
-                                            fontSize: 14,
+                                            letterSpacing: -0.09,
+                                            fontSize: isDesktop() ? 12 : 14,
                                             color: theme.colors.mutedForeground,
                                           ),
                                         ),
@@ -268,8 +270,8 @@ class _SettingsState extends State<Settings> {
                                       hintTextStyle: FVariantsDelta.delta([
                                         FVariantOperation.all(
                                           TextStyleDelta.delta(
-                                            letterSpacing: 0,
-                                            fontSize: 14,
+                                            letterSpacing: -0.09,
+                                            fontSize: isDesktop() ? 12 : 14,
                                             color: theme.colors.mutedForeground
                                                 .withValues(alpha: 0.5),
                                           ),
@@ -287,7 +289,7 @@ class _SettingsState extends State<Settings> {
                               ValueListenableBuilder<String?>(
                                 valueListenable: appReceivePath,
                                 builder:
-                                    (_, path, _) => LItem(
+                                    (_, path, _) => DItem(
                                       title: Text('Receive Folder'),
                                       description: Text(
                                         path ?? 'Downloads/Dino',
@@ -307,20 +309,19 @@ class _SettingsState extends State<Settings> {
                               ValueListenableBuilder<DataUnitType>(
                                 valueListenable: appDataUnit,
                                 builder:
-                                    (_, unit, _) => LItem(
+                                    (_, unit, _) => DItem(
                                       title: Text('Data Unit Type'),
                                       suffix: Row(
                                         spacing: 6,
                                         mainAxisAlignment:
                                             MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
                                         children: [
-                                          Text(
+                                          DText(
                                             unit.label,
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              color:
-                                                  theme.colors.mutedForeground,
-                                            ),
+                                            size: DTextSize.sm,
+                                            color: theme.colors.mutedForeground,
                                           ),
                                           HugeIcon(
                                             icon:
@@ -335,7 +336,7 @@ class _SettingsState extends State<Settings> {
                                     ),
                               ),
                               // Language (skipped — placeholder)
-                              // LItem(
+                              // DItem(
                               //   title: Text('Language'),
                               //   suffix: Row(
                               //     spacing: 6,
@@ -360,7 +361,7 @@ class _SettingsState extends State<Settings> {
                           ),
                         ],
                       ),
-                      // ── Theme ──────────────────────────────────────────────
+                      // Theme
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         spacing: 8,
@@ -369,20 +370,16 @@ class _SettingsState extends State<Settings> {
                             padding: EdgeInsetsGeometry.symmetric(
                               horizontal: 12,
                             ),
-                            child: Text(
+                            child: DText(
                               'Theme',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                color: theme.colors.mutedForeground,
-                                height: 1.2,
-                              ),
+                              weight: FontWeight.w500,
+                              color: theme.colors.mutedForeground,
                             ),
                           ),
                           LThemeSwitcher(),
                         ],
                       ),
-                      // ── Advanced ───────────────────────────────────────────
+                      // Advanced
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         spacing: 8,
@@ -391,53 +388,49 @@ class _SettingsState extends State<Settings> {
                             padding: EdgeInsetsGeometry.symmetric(
                               horizontal: 12,
                             ),
-                            child: Text(
-                              'Advance',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                color: theme.colors.mutedForeground,
-                                height: 1.2,
-                              ),
+                            child: DText(
+                              'Advanced',
+                              weight: FontWeight.w500,
+                              color: theme.colors.mutedForeground,
                             ),
                           ),
-                          LItemList(
+                          DItemList(
                             borderRadius: BorderRadius.circular(14),
                             children: [
                               ValueListenableBuilder<bool>(
                                 valueListenable: appAlwaysReceive,
                                 builder:
-                                    (_, val, _) => LItem(
+                                    (_, val, _) => DItem(
                                       title: Text('Always Receive'),
-                                      suffix: LSwitch(
+                                      suffix: DSwitch(
                                         on: val,
                                         onPressed: () => setAlwaysReceive(!val),
-                                        variant: LSwitchVariant.success,
+                                        variant: DSwitchVariant.success,
                                       ),
                                     ),
                               ),
                               ValueListenableBuilder<bool>(
                                 valueListenable: appFullPowerMode,
                                 builder:
-                                    (_, val, _) => LItem(
+                                    (_, val, _) => DItem(
                                       title: Text('Full Power Mode'),
-                                      suffix: LSwitch(
+                                      suffix: DSwitch(
                                         on: val,
                                         onPressed: () => setFullPowerMode(!val),
-                                        variant: LSwitchVariant.success,
+                                        variant: DSwitchVariant.success,
                                       ),
                                     ),
                               ),
                               ValueListenableBuilder<bool>(
                                 valueListenable: appNotificationsEnabled,
                                 builder:
-                                    (_, val, _) => LItem(
+                                    (_, val, _) => DItem(
                                       title: Text('Notifications'),
-                                      suffix: LSwitch(
+                                      suffix: DSwitch(
                                         on: val,
-                                        onPressed: () =>
-                                            setNotificationsEnabled(!val),
-                                        variant: LSwitchVariant.success,
+                                        onPressed:
+                                            () => setNotificationsEnabled(!val),
+                                        variant: DSwitchVariant.success,
                                       ),
                                     ),
                               ),
@@ -445,155 +438,171 @@ class _SettingsState extends State<Settings> {
                           ),
                         ],
                       ),
-                      // ── About ──────────────────────────────────────────────
-                      // Column(
-                      //   crossAxisAlignment: CrossAxisAlignment.start,
-                      //   spacing: 8,
-                      //   children: [
-                      //     LItemList(
-                      //       borderRadius: BorderRadius.circular(14),
-                      //       children: [
-                      //         LItem(
-                      //           title: Text('About'),
-                      //           suffix: HugeIcon(
-                      //             icon: HugeIcons.strokeRoundedArrowRight01,
-                      //             size: 16,
-                      //             color: theme.colors.foreground,
-                      //           ),
-                      //         ),
-                      //         LItem(
-                      //           title: Text('Help'),
-                      //           suffix: HugeIcon(
-                      //             icon: HugeIcons.strokeRoundedArrowRight01,
-                      //             size: 16,
-                      //             color: theme.colors.foreground,
-                      //           ),
-                      //         ),
-                      //         LItem(
-                      //           title: Text('Privacy Policy'),
-                      //           suffix: HugeIcon(
-                      //             icon: HugeIcons.strokeRoundedArrowRight01,
-                      //             size: 16,
-                      //             color: theme.colors.foreground,
-                      //           ),
-                      //         ),
-                      //         LItem(
-                      //           padding: EdgeInsets.fromLTRB(20, 10, 12, 10),
-                      //           title: Text('Support Dino'),
-                      //           suffix: LButton(
-                      //             size: LButtonSize.xs,
-                      //             variant: LButtonVariant.success,
-                      //             child: Text('Donate'),
-                      //           ),
-                      //         ),
-                      //       ],
-                      //     ),
-                      //     Padding(
-                      //           padding: EdgeInsetsGeometry.symmetric(
-                      //             horizontal: 16,
-                      //             vertical: 12,
-                      //           ),
-                      //           child: Center(
-                      //             child: Text(
-                      //               _localIp.isNotEmpty ? _localIp : '—',
-                      //               style: TextStyle(
-                      //                 fontSize: 14,
-                      //                 fontWeight: FontWeight.w500,
-                      //                 color: theme.colors.mutedForeground,
-                      //                 height: 1.2,
-                      //               ),
-                      //             ),
-                      //           ),
-                      //         ),
-                      //   ],
-                      // ),
+                      // About
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        spacing: 8,
+                        children: [
+                          DItemList(
+                            borderRadius: BorderRadius.circular(14),
+                            children: [
+                              DItem(
+                                title: Text('About'),
+                                suffix: HugeIcon(
+                                  icon: HugeIcons.strokeRoundedArrowRight01,
+                                  size: 16,
+                                  color: theme.colors.foreground,
+                                ),
+                              ),
+                              DItem(
+                                title: Text('Help'),
+                                suffix: HugeIcon(
+                                  icon: HugeIcons.strokeRoundedArrowRight01,
+                                  size: 16,
+                                  color: theme.colors.foreground,
+                                ),
+                              ),
+                              DItem(
+                                title: Text('Privacy Policy'),
+                                suffix: HugeIcon(
+                                  icon: HugeIcons.strokeRoundedArrowRight01,
+                                  size: 16,
+                                  color: theme.colors.foreground,
+                                ),
+                              ),
+                              DItem(
+                                padding: EdgeInsets.fromLTRB(16, 8, 10, 8),
+                                title: Text('Support Dino'),
+                                suffix: DButton(
+                                  size: DButtonSize.xs,
+                                  variant: DButtonVariant.success,
+                                  onPressed: () {
+                                    _openSponsorLink(
+                                      "https://buymeacoffee.com/kartic",
+                                    );
+                                  },
+                                  child: Text('Donate'),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsetsDirectional.fromSTEB(0, 48, 0, 0),
+                  padding: EdgeInsetsDirectional.symmetric(vertical: 48),
                   child: Column(
-                    spacing: 8,
+                    spacing: 16,
                     children: [
-                      Padding(
-                        padding: EdgeInsetsGeometry.only(bottom: 32),
-                        child: LButton(
-                          onPressed: _openSponsorLink,
-                          size: LButtonSize.sm,
-                          prefix: HugeIcon(
-                            icon: HugeIcons.strokeRoundedFavourite,
-                            color: Color(0xFFDB61A2),
-                            size: 18,
+                      DText(
+                        'Love this project ?\nBecome a GitHub Sponsor.',
+                        color: theme.colors.mutedForeground,
+                        textAlign: TextAlign.center,
+                      ),
+                      DButton(
+                        onPressed: () {
+                          _openSponsorLink(
+                            "https://github.com/sponsors/01kartic",
+                          );
+                        },
+                        size: DButtonSize.xs,
+                        prefix: HugeIcon(
+                          icon: HugeIcons.strokeRoundedFavourite,
+                          color: Color(0xFFDB61A2),
+                          size: 18,
+                        ),
+                        style: DButtonStyle(
+                          width: 102,
+                          gradient: LinearGradient(
+                            colors: [
+                              theme.colors.foreground,
+                              theme.colors.foreground,
+                            ],
                           ),
-                          style: LButtonStyle(
-                            width: 104,
-                            gradient: LinearGradient(
-                              colors: [
-                                theme.colors.foreground,
-                                theme.colors.foreground,
+                          textColor: theme.colors.background,
+                          boxShadow: [
+                            BoxShadow(
+                              color: theme.colors.foreground.withValues(
+                                alpha: 0.24,
+                              ),
+                              offset: const Offset(1, 2),
+                              blurRadius: 4,
+                            ),
+                            BoxShadow(
+                              color: theme.colors.foreground.withValues(
+                                alpha: 1,
+                              ),
+                              offset: Offset.zero,
+                              blurRadius: 0,
+                              spreadRadius: 1,
+                            ),
+                          ],
+                          borderColor: theme.colors.foreground,
+                        ),
+                        child: Text('Sponsor'),
+                      ),
+                      Padding(
+                        padding: EdgeInsetsGeometry.directional(top: 32),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Row(
+                              spacing: 6,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                DText(
+                                  'Made with',
+                                  size: DTextSize.h2,
+                                  color: theme.colors.mutedForeground,
+                                ),
+                                SvgPicture.string(
+                                  redHeart,
+                                  width: 20,
+                                  height: 20,
+                                ),
                               ],
                             ),
-                            textColor: theme.colors.background,
-                            boxShadow: [
-                              BoxShadow(
-                                color: theme.colors.foreground.withValues(
-                                  alpha: 0.24,
+                            Row(
+                              spacing: 6,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                DText(
+                                  'by',
+                                  size: DTextSize.h2,
+                                  color: theme.colors.mutedForeground,
                                 ),
-                                offset: const Offset(1, 2),
-                                blurRadius: 4,
-                              ),
-                              BoxShadow(
-                                color: theme.colors.foreground.withValues(
-                                  alpha: 1,
+                                MouseRegion(
+                                  cursor: SystemMouseCursors.click,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      _openSponsorLink(
+                                        "https://x.com/01_kartic",
+                                      );
+                                    },
+                                    child: DText(
+                                      '@kartic',
+                                      size: DTextSize.h2,
+                                      color: lCustom.info,
+                                    ),
+                                  ),
                                 ),
-                                offset: Offset.zero,
-                                blurRadius: 0,
-                                spreadRadius: 1,
-                              ),
-                            ],
-                            borderColor: theme.colors.foreground,
-                            padding: EdgeInsets.symmetric(horizontal: 10),
-                          ),
-                          child: Text('Sponsor'),
-                        ),
-                      ),
-                      Row(
-                        spacing: 4,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Made with',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: theme.colors.mutedForeground,
-                              height: 1.2,
+                              ],
                             ),
-                          ),
-                          Image(
-                            image: AssetImage(platformAsset('Red_Heart.png')),
-                            width: 18,
-                          ),
-                        ],
-                      ),
-                      Text(
-                        'vBeta',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: theme.colors.mutedForeground.withAlpha(180),
-                          height: 1.2,
+                            Padding(
+                              padding: EdgeInsetsGeometry.only(top: 20),
+                              child: DText(
+                                "v1.0.0",
+                                size: DTextSize.sm,
+                                color: theme.colors.mutedForeground,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
-                  ),
-                ),
-                Image(
-                  image: AssetImage(
-                    platformAsset(
-                      theme.colors.brightness == Brightness.dark
-                          ? 'Dino_Footer_Dark.png'
-                          : 'Dino_Footer_Light.png',
-                    ),
                   ),
                 ),
               ],

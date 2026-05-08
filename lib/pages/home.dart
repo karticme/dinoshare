@@ -1,10 +1,13 @@
 import 'dart:io';
+import 'package:dinoshare/style/svgs.dart';
+import 'package:dinoshare/style/typography.dart';
+import 'package:dinoshare/util/utility_function.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:forui/forui.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:dinoshare/state/state_index.dart';
-import 'package:dinoshare/util/platform_asset.dart';
-import 'package:dinoshare/widgets/huge_button.dart';
+import 'package:dinoshare/widgets/big_button.dart';
 import 'package:dinoshare/widgets/button.dart';
 import 'package:dinoshare/widgets/items.dart';
 import 'package:dinoshare/widgets/header.dart';
@@ -27,7 +30,7 @@ String getGreeting() {
   if (hour >= 5 && hour < 12) return 'Good Morning';
   if (hour >= 12 && hour < 17) return 'Good Afternoon';
   if (hour >= 17 && hour < 21) return 'Good Evening';
-  return 'Good Night';
+  return 'Have a good night !';
 }
 
 class _HomeState extends State<Home> {
@@ -53,14 +56,14 @@ class _HomeState extends State<Home> {
                 ),
                 child: Column(
                   children: [
-                    LHeader(
+                    DHeader(
                       suffix: [
-                        LButton(
+                        DButton(
                           size:
                               Platform.isMacOS
-                                  ? LButtonSize.sm
-                                  : LButtonSize.md,
-                          variant: LButtonVariant.ghost,
+                                  ? DButtonSize.sm
+                                  : DButtonSize.md,
+                          variant: DButtonVariant.ghost,
                           onPressed:
                               () => Navigator.of(context).push(
                                 CupertinoPageRoute(
@@ -73,20 +76,20 @@ class _HomeState extends State<Home> {
                           ),
                         ),
                       ],
-                      child: Text(getGreeting()),
+                      title: getGreeting(),
                     ),
                     Padding(
                       padding: EdgeInsetsGeometry.fromLTRB(
-                        20,
-                        Platform.isMacOS ? 8 : 16,
-                        20,
-                        20,
+                        16,
+                        isDesktop() ? 0 : 8,
+                        16,
+                        16,
                       ),
                       child: Row(
-                        spacing: 20,
+                        spacing: 16,
                         children: [
                           Expanded(
-                            child: LHugeButton(
+                            child: DBigButton(
                               label: 'Share',
                               icon: HugeIcon(
                                 icon: HugeIcons.strokeRoundedShare03,
@@ -104,8 +107,8 @@ class _HomeState extends State<Home> {
                             ),
                           ),
                           Expanded(
-                            child: LHugeButton(
-                              variant: LHugeButtonVariant.outline,
+                            child: DBigButton(
+                              variant: DBigButtonVariant.outline,
                               label: 'Receive',
                               icon: HugeIcon(
                                 icon: HugeIcons.strokeRoundedDownload02,
@@ -135,86 +138,60 @@ class _HomeState extends State<Home> {
                       ..sort((a, b) => b.completedAt.compareTo(a.completedAt));
                 final recentToday = recent.take(5).toList();
 
-                // ── Shared widgets ─────────────────────────────────────────
                 final deviceChip = ValueListenableBuilder<String>(
                   valueListenable: appDeviceName,
                   builder:
                       (_, name, _) => ValueListenableBuilder<String>(
                         valueListenable: appDeviceTypeLabel,
                         builder:
-                            (_, typeLabel, _) => Padding(
-                              padding: EdgeInsetsGeometry.fromLTRB(
-                                20,
-                                16,
-                                20,
-                                0,
+                            (_, typeLabel, _) => DItem(
+                              prefix: HugeIcon(
+                                icon: _deviceIcon(typeLabel),
+                                color: lCustom.success,
+                                size: 20,
                               ),
-                              child: LItem(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 12,
-                                ),
-                                borderRadius: BorderRadius.circular(14),
-                                spacing: 10,
-                                prefix: HugeIcon(
-                                  icon: _deviceIcon(typeLabel),
-                                  color: lCustom.success,
-                                  size: 20,
-                                ),
-                                suffix: Text(
-                                  typeLabel,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: theme.colors.mutedForeground,
-                                  ),
-                                ),
-                                title: Text(
-                                  name,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    height: 1.2,
-                                  ),
-                                ),
+                              suffix: DText(
+                                typeLabel,
+                                size: DTextSize.sm,
+                                color: theme.colors.mutedForeground,
                               ),
+                              title: Text(name),
                             ),
                       ),
                 );
 
+                final favouriteChip = DItem(
+                  prefix: SvgPicture.string(filledStar, width: 20, height: 20),
+                  title: Text("Favourite Devices"),
+                );
+
                 final historyHeader = Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  padding: EdgeInsets.symmetric(horizontal: 28, vertical: 16),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Text(
+                      DText(
                         'History',
-                        style: theme.typography.sm.copyWith(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: theme.colors.mutedForeground,
-                          height: 1.2,
-                        ),
+                        weight: FontWeight.w600,
+                        color: theme.colors.mutedForeground,
                       ),
-                      GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap:
-                            () => Navigator.of(context).push(
-                              CupertinoPageRoute(
-                                builder: (_) => const History(),
+                      MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap:
+                              () => Navigator.of(context).push(
+                                CupertinoPageRoute(
+                                  builder: (_) => const History(),
+                                ),
                               ),
-                            ),
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 4,
-                            vertical: 2,
-                          ),
-                          child: Text(
-                            'View All',
-                            style: theme.typography.sm.copyWith(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(vertical: 2),
+                            child: DText(
+                              'View All',
+                              size: DTextSize.sm,
                               color: lCustom.info,
-                              height: 1.2,
                             ),
                           ),
                         ),
@@ -225,67 +202,50 @@ class _HomeState extends State<Home> {
 
                 final footer = [
                   Padding(
-                    padding: EdgeInsetsDirectional.fromSTEB(0, 32, 0, 0),
-                    child: Column(
-                      spacing: 8,
+                    padding: EdgeInsetsDirectional.fromSTEB(24, 40, 24, 24),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Row(
-                          spacing: 4,
+                          spacing: 8,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(
+                            DText(
                               'Made with',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: theme.colors.mutedForeground,
-                                height: 1.2,
-                              ),
+                              size: DTextSize.h2,
+                              color: theme.colors.mutedForeground,
                             ),
-                            Image(
-                              image: AssetImage(platformAsset('Red_Heart.png')),
-                              width: 18,
-                            ),
+                            SvgPicture.string(redHeart, width: 20, height: 20),
                           ],
                         ),
-                        Text(
-                          'vBeta',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: theme.colors.mutedForeground.withAlpha(180),
-                            height: 1.2,
-                          ),
+                        DText(
+                          'v1.0.0',
+                          size: DTextSize.sm,
+                          color: theme.colors.mutedForeground.withAlpha(180),
                         ),
                       ],
                     ),
                   ),
-                  Padding(
-                    padding: EdgeInsets.only(
-                      bottom: Platform.isAndroid ? 16 : 0,
-                    ),
-                    child: Image(
-                      image: AssetImage(
-                        platformAsset(
-                          theme.colors.brightness == Brightness.dark
-                              ? 'Dino_Footer_Dark.png'
-                              : 'Dino_Footer_Light.png',
-                        ),
-                      ),
-                    ),
-                  ),
                 ];
 
-                // ── Empty state ────────────────────────────────────────────
+                // Empty state
                 if (recentToday.isEmpty) {
                   return Column(
                     children: [
-                      deviceChip,
+                      Padding(
+                        padding: EdgeInsetsGeometry.fromLTRB(16, 16, 16, 0),
+                        child: DItemList(
+                          borderRadius: BorderRadius.circular(14),
+                          children: [deviceChip, favouriteChip],
+                        ),
+                      ),
                       historyHeader,
                       Expanded(
                         child: Center(
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
-                            spacing: 8,
+                            spacing: 12,
                             children: [
                               Container(
                                 width: 52,
@@ -303,13 +263,9 @@ class _HomeState extends State<Home> {
                                   ),
                                 ),
                               ),
-                              Text(
+                              DText(
                                 'No Transfers Today',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: theme.colors.mutedForeground,
-                                  height: 1.2,
-                                ),
+                                color: theme.colors.mutedForeground,
                               ),
                             ],
                           ),
@@ -320,7 +276,7 @@ class _HomeState extends State<Home> {
                   );
                 }
 
-                // ── History + scroll ───────────────────────────────────────
+                // History + scroll
                 return CustomScrollView(
                   slivers: [
                     SliverToBoxAdapter(child: deviceChip),

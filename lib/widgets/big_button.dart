@@ -1,3 +1,5 @@
+import 'package:dinoshare/style/typography.dart';
+import 'package:dinoshare/util/utility_function.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_inset_shadow/flutter_inset_shadow.dart' as inset;
 import 'package:forui/forui.dart';
@@ -5,11 +7,11 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../style/theme.dart';
 
-enum LHugeButtonVariant { primary, secondary, destructive, success, outline }
+enum DBigButtonVariant { primary, secondary, destructive, success, outline }
 
-enum LHugeButtonAlignment { start, center, end }
+enum DBigButtonAlignment { start, center, end }
 
-class LHugeButtonStyle {
+class DBigButtonStyle {
   final double? height;
   final double? width;
   final EdgeInsetsGeometry? padding;
@@ -24,7 +26,7 @@ class LHugeButtonStyle {
   final Decoration? foregroundDecoration;
   final BorderRadiusGeometry? borderRadius;
 
-  const LHugeButtonStyle({
+  const DBigButtonStyle({
     this.height,
     this.width,
     this.padding,
@@ -41,32 +43,31 @@ class LHugeButtonStyle {
   });
 }
 
-class LHugeButton extends StatefulWidget {
+class DBigButton extends StatefulWidget {
   final VoidCallback? onPressed;
   final String label;
   final Widget icon;
-  final LHugeButtonVariant variant;
+  final DBigButtonVariant variant;
   final bool selected;
   final bool disabled;
-  final LHugeButtonStyle? style;
+  final DBigButtonStyle? style;
 
-  const LHugeButton({
+  const DBigButton({
     super.key,
     required this.label,
     required this.icon,
     this.onPressed,
-    this.variant = LHugeButtonVariant.primary,
+    this.variant = DBigButtonVariant.primary,
     this.selected = false,
     this.disabled = false,
     this.style,
   });
 
   @override
-  State<LHugeButton> createState() => _LHugeButtonState();
+  State<DBigButton> createState() => _DBigButtonState();
 }
 
-class _LHugeButtonState extends State<LHugeButton> {
-  /// Returns a BorderRadius with all corners reduced by 1, or by [delta] if provided.
+class _DBigButtonState extends State<DBigButton> {
   BorderRadiusGeometry borderRadiusMinus(
     BorderRadiusGeometry? br,
     double fallback, [
@@ -81,7 +82,6 @@ class _LHugeButtonState extends State<LHugeButton> {
         bottomRight: Radius.circular(br.bottomRight.x - delta),
       );
     }
-    // If not a BorderRadius, fallback to fallback - delta
     return BorderRadius.circular(fallback - delta);
   }
 
@@ -100,12 +100,19 @@ class _LHugeButtonState extends State<LHugeButton> {
     EdgeInsetsGeometry padding;
     double fontSize;
     double radius;
-    height = widget.variant == LHugeButtonVariant.outline ? 66 : 64;
-    padding = const EdgeInsetsGeometry.fromLTRB(14, 6, 16, 0);
+    height =
+        widget.variant == DBigButtonVariant.outline
+            ? isDesktop()
+                ? 62
+                : 66
+            : isDesktop()
+            ? 60
+            : 64;
+    padding = const EdgeInsetsGeometry.fromLTRB(14, 8, 16, 0);
     fontSize = 20;
     radius = 16;
 
-    final LHugeButtonStyle style = widget.style ?? const LHugeButtonStyle();
+    final DBigButtonStyle style = widget.style ?? const DBigButtonStyle();
     height = style.height ?? height;
     padding = style.padding ?? padding;
     fontSize = style.fontSize ?? fontSize;
@@ -115,7 +122,7 @@ class _LHugeButtonState extends State<LHugeButton> {
     final BorderRadiusGeometry borderRadius =
         style.borderRadius ?? BorderRadius.circular(radius);
 
-    final double defaultIconSize = 60;
+    final double defaultIconSize = 52;
     final double iconSize = styleIconSize ?? defaultIconSize;
 
     Color bg, fg, borderColor, iconColor;
@@ -123,7 +130,7 @@ class _LHugeButtonState extends State<LHugeButton> {
     List<BoxShadow> shadow = [];
     Decoration? foregroundDecoration;
     switch (widget.variant) {
-      case LHugeButtonVariant.primary:
+      case DBigButtonVariant.primary:
         bg = theme.colors.primary;
         fg = theme.colors.primaryForeground;
         borderColor = theme.colors.primary;
@@ -155,13 +162,13 @@ class _LHugeButtonState extends State<LHugeButton> {
           ],
         );
         break;
-      case LHugeButtonVariant.secondary:
+      case DBigButtonVariant.secondary:
         bg = theme.colors.secondary;
         fg = theme.colors.secondaryForeground;
         borderColor = Color(0x00000000);
         iconColor = theme.colors.secondaryForeground.withAlpha(70);
         break;
-      case LHugeButtonVariant.destructive:
+      case DBigButtonVariant.destructive:
         bg = theme.colors.destructive;
         fg = theme.colors.destructiveForeground;
         borderColor = theme.colors.destructive;
@@ -193,7 +200,7 @@ class _LHugeButtonState extends State<LHugeButton> {
           ],
         );
         break;
-      case LHugeButtonVariant.success:
+      case DBigButtonVariant.success:
         bg = lCustom.success;
         fg = lCustom.successForeground;
         borderColor = lCustom.success;
@@ -225,7 +232,7 @@ class _LHugeButtonState extends State<LHugeButton> {
           ],
         );
         break;
-      case LHugeButtonVariant.outline:
+      case DBigButtonVariant.outline:
         bg = _hovered ? theme.colors.secondary : theme.colors.background;
         fg = theme.colors.foreground;
         borderColor = theme.colors.border;
@@ -256,7 +263,7 @@ class _LHugeButtonState extends State<LHugeButton> {
     final Widget button = AnimatedContainer(
       duration: const Duration(milliseconds: 150),
       curve: Curves.easeOut,
-      transform: Matrix4.translationValues(0, _pressed ? 1 : 0, 0),
+      transform: Matrix4.translationValues(0, _pressed ? 2 : 0, 0),
       height: height,
       width: finalWidth,
       padding: padding,
@@ -274,17 +281,10 @@ class _LHugeButtonState extends State<LHugeButton> {
         height: double.infinity,
         child: Stack(
           children: [
-            Text(
-              widget.label,
-              style: theme.typography.md.copyWith(
-                color: fg,
-                fontWeight: style.fontWeight ?? FontWeight.w500,
-                fontSize: fontSize,
-              ),
-            ),
+            DText(widget.label, size: DTextSize.h2, color: fg),
             Positioned(
-              top: 16,
-              right: -4,
+              bottom: -16,
+              right: 0,
               child: HugeIcon(
                 icon: (widget.icon as HugeIcon).icon,
                 color: iconColor,

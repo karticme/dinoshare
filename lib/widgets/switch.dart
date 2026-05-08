@@ -3,22 +3,22 @@ import 'package:forui/forui.dart';
 
 import '../style/theme.dart';
 
-enum LSwitchVariant { primary, success }
+enum DSwitchVariant { primary, success }
 
-class LSwitch extends StatefulWidget {
+class DSwitch extends StatefulWidget {
   final bool on;
   final VoidCallback? onPressed;
-  final LSwitchVariant variant;
+  final DSwitchVariant variant;
   final bool disabled;
   final double width;
   final double height;
   final Duration duration;
 
-  const LSwitch({
+  const DSwitch({
     super.key,
     required this.on,
     required this.onPressed,
-    this.variant = LSwitchVariant.primary,
+    this.variant = DSwitchVariant.primary,
     this.disabled = false,
     this.width = 40,
     this.height = 20,
@@ -26,10 +26,10 @@ class LSwitch extends StatefulWidget {
   });
 
   @override
-  State<LSwitch> createState() => _LSwitchState();
+  State<DSwitch> createState() => _DSwitchState();
 }
 
-class _LSwitchState extends State<LSwitch> {
+class _DSwitchState extends State<DSwitch> {
   bool _pressed = false;
 
   @override
@@ -41,7 +41,7 @@ class _LSwitchState extends State<LSwitch> {
     final bool isOn = widget.on;
     final bool isDisabled = widget.disabled;
     final Color activeColor =
-        widget.variant == LSwitchVariant.success
+        widget.variant == DSwitchVariant.success
             ? lCustom.success
             : theme.colors.primary;
     final double trackHeight = widget.height;
@@ -56,7 +56,7 @@ class _LSwitchState extends State<LSwitch> {
             ? activeColor.withValues(alpha: isDisabled ? 0.22 : 1)
             : theme.colors.secondary;
     final Color knobColor =
-        widget.variant == LSwitchVariant.success
+        widget.variant == DSwitchVariant.success
             ? lCustom.successForeground
             : theme.colors.primaryForeground;
     final Alignment knobAlignment =

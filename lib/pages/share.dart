@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:ui';
+import 'package:dinoshare/style/typography.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:forui/forui.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -49,12 +50,12 @@ class _ShareState extends State<Share> {
       color: theme.colors.secondary,
       child: Column(
         children: [
-          LHeader(
+          DHeader(
             nested: true,
             prefix: [
-              LButton(
-                size: Platform.isMacOS ? LButtonSize.sm : LButtonSize.md,
-                variant: LButtonVariant.ghost,
+              DButton(
+                size: Platform.isMacOS ? DButtonSize.sm : DButtonSize.md,
+                variant: DButtonVariant.ghost,
                 onPressed: () => Navigator.of(context).pop(),
                 child: HugeIcon(
                   icon: HugeIcons.strokeRoundedArrowLeft01,
@@ -62,7 +63,7 @@ class _ShareState extends State<Share> {
                 ),
               ),
             ],
-            child: Text('Share'),
+            title: 'Share',
           ),
           Expanded(
             child: ValueListenableBuilder<List<SelectedShareItem>>(
@@ -71,7 +72,7 @@ class _ShareState extends State<Share> {
                   (_, items, _) => ListView(
                     children: [
                       Padding(
-                        padding: EdgeInsetsGeometry.symmetric(horizontal: 20),
+                        padding: EdgeInsetsGeometry.symmetric(horizontal: 16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           spacing: 24,
@@ -83,26 +84,22 @@ class _ShareState extends State<Share> {
                                 Padding(
                                   padding: EdgeInsetsGeometry.fromLTRB(
                                     12,
-                                    0,
+                                    12,
                                     12,
                                     0,
                                   ),
-                                  child: Text(
+                                  child: DText(
                                     'Selected Files',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                      color: theme.colors.mutedForeground,
-                                      height: 1.2,
-                                    ),
+                                    weight: FontWeight.w500,
+                                    color: theme.colors.mutedForeground,
                                   ),
                                 ),
-                                LItemList(
+                                DItemList(
                                   borderRadius: BorderRadius.circular(14),
                                   children:
                                       items
                                           .map(
-                                            (item) => LItem(
+                                            (item) => DItem(
                                               prefix: HugeIcon(
                                                 icon:
                                                     item.isDirectory
@@ -153,8 +150,8 @@ class _ShareState extends State<Share> {
           ),
           Container(
             padding: EdgeInsets.symmetric(
-              horizontal: 24,
-              vertical: desktop ? 16 : 24,
+              horizontal: 20,
+              vertical: desktop ? 16 : 20,
             ),
             decoration: BoxDecoration(
               color: theme.colors.background,
@@ -166,8 +163,8 @@ class _ShareState extends State<Share> {
               spacing: 20,
               children: [
                 Expanded(
-                  child: LButton(
-                    variant: LButtonVariant.outline,
+                  child: DButton(
+                    variant: DButtonVariant.outline,
                     prefix: HugeIcon(icon: HugeIcons.strokeRoundedPlusSign),
                     child: Text('Add Files'),
                     onPressed: () async {
@@ -179,7 +176,7 @@ class _ShareState extends State<Share> {
                   child: ValueListenableBuilder<List<SelectedShareItem>>(
                     valueListenable: appShareItems,
                     builder:
-                        (_, items, _) => LButton(
+                        (_, items, _) => DButton(
                           onPressed:
                               items.isEmpty
                                   ? null
@@ -279,9 +276,10 @@ class _DevicePickerSheetState extends State<_DevicePickerSheet>
       });
     } else if (session.status == TransferStatus.rejected ||
         session.status == TransferStatus.failed) {
-      final msg = session.status == TransferStatus.rejected
-          ? 'Receiver declined the transfer.'
-          : (session.error ?? 'Transfer failed.');
+      final msg =
+          session.status == TransferStatus.rejected
+              ? 'Receiver declined the transfer.'
+              : (session.error ?? 'Transfer failed.');
       if (mounted) {
         setState(() {
           _pendingPeerId = null;
@@ -328,9 +326,12 @@ class _DevicePickerSheetState extends State<_DevicePickerSheet>
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(28),
                 ),
-                border: Border.all(color: theme.colors.border, strokeAlign: BorderSide.strokeAlignOutside),
+                border: Border.all(
+                  color: theme.colors.border,
+                  strokeAlign: BorderSide.strokeAlignOutside,
+                ),
               ),
-              padding: EdgeInsets.fromLTRB(20, 12, 20, 0),
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Column(
                 children: [
                   Container(
@@ -350,32 +351,30 @@ class _DevicePickerSheetState extends State<_DevicePickerSheet>
                           spacing: 16,
                           children: [
                             Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 12),
+                              padding: EdgeInsets.symmetric(horizontal: 8),
                               child: Row(
-                                spacing: 6,
+                                spacing: 8,
                                 children: [
-                                  FCircularProgress.loader(
-                                    size: FCircularProgressSizeVariant.lg,
-                                  ),
-                                  Text(
+                                  FCircularProgress.loader(),
+                                  DText(
                                     _pendingPeerId != null
                                         ? 'Waiting for receiver…'
                                         : 'Searching for devices',
-                                        style: TextStyle(color: theme.colors.foreground),
+                                    color: theme.colors.foreground,
                                   ),
                                 ],
                               ),
                             ),
                             if (_errorMessage != null)
                               Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 12),
-                                child: Text(
-                                  _errorMessage!,
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: theme.colors.destructive,
-                                    height: 1.4,
-                                  ),
+                                padding: EdgeInsets.symmetric(horizontal: 8),
+                                child: Row(
+                                  children: [
+                                    DText(
+                                      _errorMessage!,
+                                      color: theme.colors.destructive,
+                                    ),
+                                  ],
                                 ),
                               ),
                             ValueListenableBuilder<List<PeerDevice>>(
@@ -383,19 +382,15 @@ class _DevicePickerSheetState extends State<_DevicePickerSheet>
                               builder: (_, peers, _) {
                                 if (peers.isEmpty) {
                                   return Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 24),
-                                    child: Text(
+                                    padding: EdgeInsets.symmetric(vertical: 40),
+                                    child: DText(
                                       'No devices found nearby.\n\nMake sure the other device is on\nthe same Wi-Fi.',
                                       textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: theme.colors.mutedForeground,
-                                        height: 1.5,
-                                      ),
+                                      color: theme.colors.mutedForeground,
                                     ),
                                   );
                                 }
-                                return LItemList(
+                                return DItemList(
                                   borderRadius: BorderRadius.circular(14),
                                   children:
                                       peers.map((peer) {
@@ -404,7 +399,7 @@ class _DevicePickerSheetState extends State<_DevicePickerSheet>
                                         final isDisabled =
                                             _pendingPeerId != null &&
                                             _pendingPeerId != peer.id;
-                                        return LItem(
+                                        return DItem(
                                           disabled: isDisabled,
                                           padding: EdgeInsets.symmetric(
                                             horizontal: 18,

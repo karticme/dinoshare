@@ -1,32 +1,33 @@
 import 'dart:io';
 
+import 'package:dinoshare/style/typography.dart';
 import 'package:flutter/widgets.dart';
 import 'package:forui/forui.dart';
 import 'package:dinoshare/widgets/button.dart';
 
 import '../style/theme.dart';
 
-enum LProgressbarVariant { primary, destructive, success }
+enum DProgressbarVariant { primary, destructive, success }
 
-class LProgressbar extends StatefulWidget {
+class DProgressbar extends StatefulWidget {
   final double value;
   final String label;
-  final LProgressbarVariant variant;
+  final DProgressbarVariant variant;
   final bool runningSpark;
 
-  const LProgressbar({
+  const DProgressbar({
     super.key,
     required this.value,
     this.label = '',
-    this.variant = LProgressbarVariant.primary,
+    this.variant = DProgressbarVariant.primary,
     this.runningSpark = true,
   });
 
   @override
-  State<LProgressbar> createState() => _LProgressbarState();
+  State<DProgressbar> createState() => _DProgressbarState();
 }
 
-class _LProgressbarState extends State<LProgressbar>
+class _DProgressbarState extends State<DProgressbar>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _sparkAnim;
@@ -111,14 +112,14 @@ class _LProgressbarState extends State<LProgressbar>
             builder: (context, _) {
               final gradient = _buildSparkGradient(
                 _sparkAnim.value,
-                widget.variant == LProgressbarVariant.destructive
+                widget.variant == DProgressbarVariant.destructive
                     ? theme.colors.destructive
-                    : widget.variant == LProgressbarVariant.success
+                    : widget.variant == DProgressbarVariant.success
                     ? lCustom.success
                     : theme.colors.primary,
-                widget.variant == LProgressbarVariant.destructive
+                widget.variant == DProgressbarVariant.destructive
                     ? theme.colors.destructiveForeground.withValues(alpha: 0.5)
-                    : widget.variant == LProgressbarVariant.success
+                    : widget.variant == DProgressbarVariant.success
                     ? lCustom.successForeground.withValues(alpha: 0.5)
                     : theme.colors.primaryForeground.withValues(alpha: 0.4),
               );
@@ -150,7 +151,7 @@ class _LProgressbarState extends State<LProgressbar>
                             fontWeight: FontWeight.w400,
                             color: theme.colors.mutedForeground,
                             fontFeatures: [FontFeature.tabularFigures()],
-                            height: 1.2
+                            height: 1.2,
                           ),
                         ),
                       ),
@@ -163,27 +164,24 @@ class _LProgressbarState extends State<LProgressbar>
                         curve: Curves.easeInOut,
                         width: progressWidth,
                         height: 30,
-                        child: LButton(
-                          size: LButtonSize.xs,
+                        child: DButton(
+                          size: DButtonSize.xs,
                           variant:
-                              widget.variant == LProgressbarVariant.success
-                                  ? LButtonVariant.success
+                              widget.variant == DProgressbarVariant.success
+                                  ? DButtonVariant.success
                                   : widget.variant ==
-                                      LProgressbarVariant.destructive
-                                  ? LButtonVariant.destructive
-                                  : LButtonVariant.primary,
-                          alignment: LButtonAlignment.start,
-                          style: LButtonStyle(
+                                      DProgressbarVariant.destructive
+                                  ? DButtonVariant.destructive
+                                  : DButtonVariant.primary,
+                          alignment: DButtonAlignment.start,
+                          style: DButtonStyle(
                             radius: 16,
                             fontWeight: FontWeight.w400,
                             gradient: widget.runningSpark ? gradient : null,
                           ),
-                          child: Text(
+                          child: DText(
                             widget.label,
-                            style: TextStyle(
-                              fontFeatures: [FontFeature.tabularFigures()],
-                              height: 1.2
-                            ),
+                            fontFeatures: [FontFeature.tabularFigures()],
                           ),
                         ),
                       ),

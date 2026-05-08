@@ -7,23 +7,30 @@ extension ReceiverX on DinoshareTransferService {
   // ─────────────────────────────────────────────────────────────────────────
 
   Future<void> startReceiver({required String deviceName}) async {
+    debugPrint('[TransferService] startReceiver called with deviceName=$deviceName');
     await initialize();
     _deviceName = deviceName.trim().isEmpty ? 'LAFs Device' : deviceName.trim();
-    if (_receivingEnabled && _controlServer != null) return;
+    if (_receivingEnabled && _controlServer != null) {
+      debugPrint('[TransferService] Receiver already running, returning');
+      return;
+    }
     if (_controlServer == null) {
       _controlPort = await _pickFreePort();
+      debugPrint('[TransferService] Binding control server on port $_controlPort');
       _controlServer = await ServerSocket.bind(
         InternetAddress.anyIPv4,
         _controlPort,
         shared: true,
       );
       _controlServer!.listen(_handleControlConnection);
+      debugPrint('[TransferService] Control server listening on $_controlPort');
     }
     _receivingEnabled = true;
     await _refreshDiscoveryTargets();
     await _ensureDiscoverySocket();
     await _joinMulticast();
     _discoverySocket?.readEventsEnabled = true;
+    debugPrint('[TransferService] Receiver started, broadcasting as $_deviceName');
     unawaited(_startBonjourBroadcast());
   }
 
@@ -179,6 +186,8 @@ extension ReceiverX on DinoshareTransferService {
 
     final sessionId = payload['sessionId'] as String;
     final senderName = payload['senderName'] as String;
+    final senderId = (payload['senderId'] as String?) ?? senderName;
+    final senderDeviceType = payload['senderDeviceType'] as String?;
     final senderPubKeyBytes = base64Decode(payload['pubKey'] as String);
     final senderFullPower = (payload['fullPower'] as bool?) ?? false;
 
@@ -229,17 +238,22 @@ extension ReceiverX on DinoshareTransferService {
 
     final incoming = IncomingTransferRequest(
       sessionId: sessionId,
+      senderId: senderId,
       senderName: senderName,
       files: files,
       totalBytes: totalBytes,
       topLevelCount: topLevelCount,
+      senderDeviceType: senderDeviceType,
       senderFullPower: senderFullPower,
     );
+    debugPrint('[TransferService] Incoming request from $senderName, sessionId=$sessionId');
     _pendingIncoming[sessionId] = _PendingIncoming(
       request: incoming,
       socket: socket,
     );
+    debugPrint('[TransferService] Setting incomingRequest.value to $senderName');
     incomingRequest.value = incoming;
+    debugPrint('[TransferService] incomingRequest.value is now: ${incomingRequest.value?.senderName}');
   }
 
   Future<void> _handleFileHello(

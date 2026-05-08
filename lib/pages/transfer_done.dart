@@ -1,3 +1,4 @@
+import 'package:dinoshare/style/typography.dart';
 import 'package:flutter/widgets.dart';
 import 'package:forui/forui.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -44,31 +45,30 @@ class TransferDone extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          LHeader(
+          DHeader(
             nested: true,
             suffix: [
-              LButton(
-                size: LButtonSize.xs,
-                variant: LButtonVariant.ghost,
+              DButton(
+                size: DButtonSize.xs,
+                variant: DButtonVariant.ghost,
                 textColor: lCustom.info,
                 child: Text('Done'),
                 onPressed: () {
-                  // Pop back to root (home)
                   Navigator.of(context).popUntil((route) => route.isFirst);
                 },
               ),
             ],
-            child: Text(isStopped ? 'Stopped' : 'Completed'),
+            title: isStopped ? 'Stopped' : 'Completed',
           ),
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Column(
               spacing: 2,
               children: [
                 Row(
                   spacing: 2,
                   children: [
-                    LItem(
+                    DItem(
                       compact: true,
                       title: Text(fileCountLabel),
                       prefix: HugeIcon(
@@ -84,7 +84,7 @@ class TransferDone extends StatelessWidget {
                       ),
                     ),
                     Expanded(
-                      child: LItem(
+                      child: DItem(
                         title: Text(durationLabel),
                         prefix: HugeIcon(
                           icon: HugeIcons.strokeRoundedTimer01,
@@ -101,7 +101,7 @@ class TransferDone extends StatelessWidget {
                     ),
                   ],
                 ),
-                LItem(
+                DItem(
                   title: Text(receivedSize),
                   prefix: HugeIcon(
                     icon: HugeIcons.strokeRoundedDatabase01,
@@ -120,21 +120,18 @@ class TransferDone extends StatelessWidget {
           ),
           if (isStopped)
             Padding(
-              padding: EdgeInsets.fromLTRB(20, 0, 20, 4),
+              padding: EdgeInsets.fromLTRB(16, 0, 16, 12),
               child: _buildStopBanner(theme),
             ),
           Padding(
-            padding: EdgeInsets.fromLTRB(32, 4, 32, 12),
-            child: Text(
-              'Files',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-            ),
+            padding: EdgeInsets.fromLTRB(28, 8, 28, 8),
+            child: DText('Files', weight: FontWeight.w500),
           ),
           Expanded(
             child: SingleChildScrollView(
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: LItemList(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: DItemList(
                   borderRadius: BorderRadius.circular(14),
                   children:
                       session.completedItems
@@ -188,7 +185,7 @@ class TransferDone extends StatelessWidget {
     final canOpen =
         storedFileExists(item.path) && !isDangerousFileName(item.name);
 
-    return LItem(
+    return DItem(
       padding: EdgeInsets.fromLTRB(8, 8, 16, 8),
       prefix: FileThumbnail(
         path: item.path,

@@ -4,23 +4,23 @@ import 'package:dinoshare/widgets/button.dart';
 
 import '../style/theme.dart';
 
-enum LDeviceWaitVariant { normal, primary, destructive, success }
+enum DeviceWaitVariant { normal, primary, destructive, success }
 
-class LDeviceWait extends StatefulWidget {
+class DeviceWait extends StatefulWidget {
   final Widget child;
-  final LDeviceWaitVariant variant;
+  final DeviceWaitVariant variant;
 
-  const LDeviceWait({
+  const DeviceWait({
     super.key,
     this.child = const SizedBox.shrink(),
-    this.variant = LDeviceWaitVariant.normal,
+    this.variant = DeviceWaitVariant.normal,
   });
 
   @override
-  State<LDeviceWait> createState() => _LDeviceWaitState();
+  State<DeviceWait> createState() => _DeviceWaitState();
 }
 
-class _LDeviceWaitState extends State<LDeviceWait>
+class _DeviceWaitState extends State<DeviceWait>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _tween;
@@ -96,15 +96,15 @@ class _LDeviceWaitState extends State<LDeviceWait>
                             ? Border.all(
                               color:
                                   widget.variant ==
-                                          LDeviceWaitVariant.destructive
+                                          DeviceWaitVariant.destructive
                                       ? theme.colors.destructive.withAlpha(
                                         alpha,
                                       )
                                       : widget.variant ==
-                                          LDeviceWaitVariant.success
+                                          DeviceWaitVariant.success
                                       ? lCustom.success.withAlpha(alpha)
                                       : widget.variant ==
-                                          LDeviceWaitVariant.primary
+                                          DeviceWaitVariant.primary
                                       ? theme.colors.primary.withAlpha(alpha)
                                       : theme.colors.foreground.withAlpha(
                                         alpha,
@@ -114,11 +114,11 @@ class _LDeviceWaitState extends State<LDeviceWait>
                             : null,
                     color:
                         !isBorder
-                            ? widget.variant == LDeviceWaitVariant.destructive
+                            ? widget.variant == DeviceWaitVariant.destructive
                                 ? theme.colors.destructive.withAlpha(alpha)
-                                : widget.variant == LDeviceWaitVariant.success
+                                : widget.variant == DeviceWaitVariant.success
                                 ? lCustom.success.withAlpha(alpha)
-                                : widget.variant == LDeviceWaitVariant.primary
+                                : widget.variant == DeviceWaitVariant.primary
                                 ? theme.colors.primary.withAlpha(alpha)
                                 : theme.colors.foreground.withAlpha(alpha)
                             : null,
@@ -132,17 +132,17 @@ class _LDeviceWaitState extends State<LDeviceWait>
             clipBehavior: Clip.none,
             children: [
               ...rings,
-              LButton(
-                size: LButtonSize.lg,
+              DButton(
+                size: DButtonSize.lg,
                 variant:
-                    widget.variant == LDeviceWaitVariant.destructive
-                        ? LButtonVariant.destructive
-                        : widget.variant == LDeviceWaitVariant.success
-                        ? LButtonVariant.success
-                        : widget.variant == LDeviceWaitVariant.primary
-                        ? LButtonVariant.primary
-                        : LButtonVariant.outline,
-                style: LButtonStyle(
+                    widget.variant == DeviceWaitVariant.destructive
+                        ? DButtonVariant.destructive
+                        : widget.variant == DeviceWaitVariant.success
+                        ? DButtonVariant.success
+                        : widget.variant == DeviceWaitVariant.primary
+                        ? DButtonVariant.primary
+                        : DButtonVariant.outline,
+                style: DButtonStyle(
                   width: 64,
                   height: 64,
                   borderRadius: BorderRadius.circular(32),

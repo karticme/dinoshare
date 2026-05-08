@@ -114,13 +114,11 @@ FColors dinoFColors({required bool dark}) => FColors(
       dark
           ? DinoColors.destructiveForegroundDark
           : DinoColors.destructiveForeground,
-  error:
-      dark
-          ? DinoColors.infoDark
-          : DinoColors
-              .info, // ForUI core does not have info, so info mapped to error
+  error: dark ? DinoColors.destructiveDark : DinoColors.destructive,
   errorForeground:
-      dark ? DinoColors.infoForegroundDark : DinoColors.infoForeground,
+      dark
+          ? DinoColors.destructiveForegroundDark
+          : DinoColors.destructiveForeground,
   card: dark ? DinoColors.cardDark : DinoColors.card,
   border: dark ? DinoColors.borderDark : DinoColors.border,
 );

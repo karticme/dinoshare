@@ -10,9 +10,11 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_inset_shadow: ^2.0.3
-  forui: ^0.21.1
+  forui: ^0.21.3
   hugeicons: ^1.1.6
   macos_window_utils: ^1.9.1
+  google_fonts: ^6.2.1
+  flutter_svg: ^2.0.10+1
 
   # Discovery (Bonjour/mDNS — works reliably on iOS)
   bonsoir: ^5.1.3

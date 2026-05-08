@@ -3,15 +3,16 @@ import 'package:flutter_inset_shadow/flutter_inset_shadow.dart' as inset;
 import 'package:forui/forui.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../style/typography.dart';
 import '../style/theme.dart';
 
-enum LButtonVariant { primary, secondary, destructive, success, ghost, outline }
+enum DButtonVariant { primary, secondary, destructive, success, ghost, outline }
 
-enum LButtonSize { xs, sm, md, lg }
+enum DButtonSize { xs, sm, md, lg }
 
-enum LButtonAlignment { start, center, end }
+enum DButtonAlignment { start, center, end }
 
-class LButtonStyle {
+class DButtonStyle {
   final double? height;
   final double? width;
   final EdgeInsetsGeometry? padding;
@@ -27,7 +28,7 @@ class LButtonStyle {
   final Decoration? foregroundDecoration;
   final BorderRadiusGeometry? borderRadius;
 
-  const LButtonStyle({
+  const DButtonStyle({
     this.height,
     this.width,
     this.padding,
@@ -45,28 +46,28 @@ class LButtonStyle {
   });
 }
 
-class LButton extends StatefulWidget {
+class DButton extends StatefulWidget {
   final VoidCallback? onPressed;
   final Widget child;
   final Widget? prefix;
   final Widget? suffix;
-  final LButtonVariant variant;
-  final LButtonSize size;
-  final LButtonAlignment alignment;
+  final DButtonVariant variant;
+  final DButtonSize size;
+  final DButtonAlignment alignment;
   final bool selected;
   final bool disabled;
-  final LButtonStyle? style;
+  final DButtonStyle? style;
   final Color? textColor;
 
-  const LButton({
+  const DButton({
     super.key,
     required this.child,
     this.prefix,
     this.suffix,
     this.onPressed,
-    this.variant = LButtonVariant.primary,
-    this.size = LButtonSize.md,
-    this.alignment = LButtonAlignment.center,
+    this.variant = DButtonVariant.primary,
+    this.size = DButtonSize.md,
+    this.alignment = DButtonAlignment.center,
     this.selected = false,
     this.disabled = false,
     this.style,
@@ -74,10 +75,10 @@ class LButton extends StatefulWidget {
   });
 
   @override
-  State<LButton> createState() => _LButtonState();
+  State<DButton> createState() => _DButtonState();
 }
 
-class _LButtonState extends State<LButton> {
+class _DButtonState extends State<DButton> {
   /// Returns a BorderRadius with all corners reduced by 1, or by [delta] if provided.
   BorderRadiusGeometry borderRadiusMinus(
     BorderRadiusGeometry? br,
@@ -102,11 +103,11 @@ class _LButtonState extends State<LButton> {
 
   AlignmentDirectional get _childAlignment {
     switch (widget.alignment) {
-      case LButtonAlignment.start:
+      case DButtonAlignment.start:
         return AlignmentDirectional.centerStart;
-      case LButtonAlignment.end:
+      case DButtonAlignment.end:
         return AlignmentDirectional.centerEnd;
-      case LButtonAlignment.center:
+      case DButtonAlignment.center:
         return AlignmentDirectional.center;
     }
   }
@@ -121,35 +122,35 @@ class _LButtonState extends State<LButton> {
     // Sizing
     double height;
     EdgeInsetsGeometry padding;
-    double fontSize;
+    DTextSize labelSize;
     double radius;
     double spacing;
     switch (widget.size) {
-      case LButtonSize.xs:
-        height = widget.variant == LButtonVariant.outline ? 30 : 28;
+      case DButtonSize.xs:
+        height = widget.variant == DButtonVariant.outline ? 30 : 28;
         padding = const EdgeInsets.symmetric(horizontal: 10);
-        fontSize = 14;
+        labelSize = DTextSize.base;
         radius = 10;
         spacing = 4;
         break;
-      case LButtonSize.sm:
-        height = widget.variant == LButtonVariant.outline ? 34 : 32;
+      case DButtonSize.sm:
+        height = widget.variant == DButtonVariant.outline ? 34 : 32;
         padding = const EdgeInsets.symmetric(horizontal: 12);
-        fontSize = 14;
+        labelSize = DTextSize.base;
         radius = 10;
         spacing = 6;
         break;
-      case LButtonSize.md:
-        height = widget.variant == LButtonVariant.outline ? 42 : 40;
+      case DButtonSize.md:
+        height = widget.variant == DButtonVariant.outline ? 42 : 40;
         padding = const EdgeInsets.symmetric(horizontal: 14);
-        fontSize = 16;
+        labelSize = DTextSize.h3;
         radius = 12;
         spacing = 6;
         break;
-      case LButtonSize.lg:
-        height = widget.variant == LButtonVariant.outline ? 46 : 44;
+      case DButtonSize.lg:
+        height = widget.variant == DButtonVariant.outline ? 46 : 44;
         padding = const EdgeInsets.symmetric(horizontal: 16);
-        fontSize = 18;
+        labelSize = DTextSize.h2;
         radius = 14;
         spacing = 6;
         break;
@@ -167,10 +168,9 @@ class _LButtonState extends State<LButton> {
       padding = EdgeInsets.zero;
     }
 
-    final LButtonStyle style = widget.style ?? const LButtonStyle();
+    final DButtonStyle style = widget.style ?? const DButtonStyle();
     height = style.height ?? height;
     padding = style.padding ?? padding;
-    fontSize = style.fontSize ?? fontSize;
     radius = style.radius ?? radius;
     final double? styleIconSize = style.iconSize;
     final double? finalWidth = style.width ?? width;
@@ -180,16 +180,16 @@ class _LButtonState extends State<LButton> {
     final Color? effectiveTextColor = widget.textColor ?? style.textColor;
     final double defaultIconSize;
     switch (widget.size) {
-      case LButtonSize.xs:
+      case DButtonSize.xs:
         defaultIconSize = 16;
         break;
-      case LButtonSize.sm:
+      case DButtonSize.sm:
         defaultIconSize = 18;
         break;
-      case LButtonSize.md:
+      case DButtonSize.md:
         defaultIconSize = 20;
         break;
-      case LButtonSize.lg:
+      case DButtonSize.lg:
         defaultIconSize = 22;
         break;
     }
@@ -201,7 +201,7 @@ class _LButtonState extends State<LButton> {
     List<BoxShadow> shadow = [];
     Decoration? foregroundDecoration;
     switch (widget.variant) {
-      case LButtonVariant.primary:
+      case DButtonVariant.primary:
         bg = theme.colors.primary;
         fg = theme.colors.primaryForeground;
         borderColor = theme.colors.primary;
@@ -232,12 +232,12 @@ class _LButtonState extends State<LButton> {
           ],
         );
         break;
-      case LButtonVariant.secondary:
+      case DButtonVariant.secondary:
         bg = theme.colors.secondary;
         fg = theme.colors.secondaryForeground;
         borderColor = Color(0x00000000);
         break;
-      case LButtonVariant.destructive:
+      case DButtonVariant.destructive:
         bg = theme.colors.destructive;
         fg = theme.colors.destructiveForeground;
         borderColor = theme.colors.destructive;
@@ -268,7 +268,7 @@ class _LButtonState extends State<LButton> {
           ],
         );
         break;
-      case LButtonVariant.success:
+      case DButtonVariant.success:
         bg = lCustom.success;
         fg = lCustom.successForeground;
         borderColor = lCustom.success;
@@ -299,14 +299,14 @@ class _LButtonState extends State<LButton> {
           ],
         );
         break;
-      case LButtonVariant.ghost:
+      case DButtonVariant.ghost:
         bg = theme.colors.secondary.withValues(alpha: _hovered ? 1.0 : 0.0);
         {}
         fg = theme.colors.foreground;
         borderColor = Color(0x00000000);
         borderWidth = 0;
         break;
-      case LButtonVariant.outline:
+      case DButtonVariant.outline:
         bg = _hovered ? theme.colors.secondary : theme.colors.background;
         {}
         fg = theme.colors.foreground;
@@ -358,13 +358,42 @@ class _LButtonState extends State<LButton> {
     if (widget.prefix != null) {
       content.add(wrapIcon(widget.prefix!));
     }
+    Widget labelWidget(Widget child) {
+      if (child is DText) {
+        return DText(
+          child.text,
+          size: labelSize,
+          color: effectiveTextColor ?? fg,
+          weight: child.weight ?? style.fontWeight ?? FontWeight.w500,
+          textAlign: child.textAlign,
+          maxLines: child.maxLines,
+          overflow: child.overflow,
+          softWrap: child.softWrap,
+        );
+      }
+      if (child is Text) {
+        return DText(
+          child.data ?? '',
+          size: labelSize,
+          color: effectiveTextColor ?? fg,
+          weight:
+              child.style?.fontWeight ?? style.fontWeight ?? FontWeight.w500,
+          textAlign: child.textAlign,
+          maxLines: child.maxLines,
+          overflow: child.overflow,
+          softWrap: child.softWrap ?? true,
+        );
+      }
+      return child;
+    }
+
     content.add(
       widget.child is HugeIcon ||
               widget.child is Icon ||
               widget.child.runtimeType.toString() == 'FIcon' ||
               widget.child is Image
           ? wrapIcon(widget.child)
-          : widget.child,
+          : labelWidget(widget.child),
     );
     if (widget.suffix != null) {
       content.add(wrapIcon(widget.suffix!));
@@ -388,19 +417,11 @@ class _LButtonState extends State<LButton> {
       clipBehavior: Clip.hardEdge,
       child: Align(
         alignment: _childAlignment,
-        child: DefaultTextStyle(
-          style: theme.typography.md.copyWith(
-            color: effectiveTextColor ?? fg,
-            fontWeight: style.fontWeight ?? FontWeight.w500,
-            fontSize: fontSize,
-            height: 1.2,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            spacing: spacing,
-            children: content,
-          ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          spacing: spacing,
+          children: content,
         ),
       ),
     );

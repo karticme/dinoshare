@@ -4,6 +4,7 @@ part of 'state_index.dart';
 const String _kReceivePath = 'receive_path';
 const String _kDeviceName = 'device_name';
 const String _kTransferHistory = 'transfer_history';
+const String _kFavouriteDevices = 'favourite_devices';
 const String _kDataUnit = 'data_unit';
 const String _kAlwaysReceive = 'always_receive';
 const String _kFullPower = 'full_power';
@@ -24,6 +25,9 @@ final ValueNotifier<bool> appFullPowerMode = ValueNotifier(false);
 final ValueNotifier<bool> appNotificationsEnabled = ValueNotifier(true);
 final ValueNotifier<List<SelectedShareItem>> appShareItems = ValueNotifier(
   <SelectedShareItem>[],
+);
+final ValueNotifier<List<FavouriteDevice>> appFavouriteDevices = ValueNotifier(
+  <FavouriteDevice>[],
 );
 final ValueNotifier<List<TransferHistoryItem>> appTransferHistory =
     ValueNotifier(<TransferHistoryItem>[]);

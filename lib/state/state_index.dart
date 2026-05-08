@@ -14,6 +14,7 @@ export '../core/transfer_service.dart';
 
 part 'app_state_store.dart';
 part 'app_state_models.dart';
+part 'app_state_favorites.dart';
 part 'app_state_settings.dart';
 part 'app_state_share.dart';
 part 'app_state_history.dart';

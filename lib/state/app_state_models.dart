@@ -25,8 +25,12 @@ enum DataUnitType {
       if (bps >= 1e6) return '${(bps / 1e6).toStringAsFixed(1)} Mb/s';
       return '${(bps / 1e3).toStringAsFixed(0)} Kb/s';
     }
-    if (bytesPerSec >= 1e9) return '${(bytesPerSec / 1e9).toStringAsFixed(2)} GB/s';
-    if (bytesPerSec >= 1e6) return '${(bytesPerSec / 1e6).toStringAsFixed(1)} MB/s';
+    if (bytesPerSec >= 1e9) {
+      return '${(bytesPerSec / 1e9).toStringAsFixed(2)} GB/s';
+    }
+    if (bytesPerSec >= 1e6) {
+      return '${(bytesPerSec / 1e6).toStringAsFixed(1)} MB/s';
+    }
     return '${(bytesPerSec / 1e3).toStringAsFixed(0)} KB/s';
   }
 
@@ -193,4 +197,36 @@ class SelectedShareItem {
   final List<TransferFileEntry> files;
 
   int get totalBytes => files.fold(0, (sum, f) => sum + f.sizeBytes);
+}
+
+class FavouriteDevice {
+  const FavouriteDevice({
+    required this.id,
+    required this.name,
+    this.deviceType,
+  });
+
+  final String id;
+  final String name;
+  final String? deviceType;
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'deviceType': deviceType,
+  };
+
+  factory FavouriteDevice.fromJson(Map<String, dynamic> json) =>
+      FavouriteDevice(
+        id: json['id'] as String,
+        name: json['name'] as String,
+        deviceType: json['deviceType'] as String?,
+      );
+
+  FavouriteDevice copyWith({String? name, String? deviceType}) =>
+      FavouriteDevice(
+        id: id,
+        name: name ?? this.name,
+        deviceType: deviceType ?? this.deviceType,
+      );
 }

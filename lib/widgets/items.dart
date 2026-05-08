@@ -2,7 +2,9 @@ import 'package:flutter/widgets.dart';
 import 'package:forui/forui.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-class LItemList extends StatelessWidget {
+import '../style/typography.dart';
+
+class DItemList extends StatelessWidget {
   final List<Widget> children;
   final double spacing;
   final EdgeInsetsGeometry? padding;
@@ -11,7 +13,7 @@ class LItemList extends StatelessWidget {
   final BorderRadiusGeometry? borderRadius;
   final Clip clipBehavior;
 
-  const LItemList({
+  const DItemList({
     super.key,
     required this.children,
     this.spacing = 2,
@@ -75,10 +77,10 @@ class LItemList extends StatelessWidget {
   }
 }
 
-/// A single row item inside [LItemList].
+/// A single row item inside [DItemList].
 ///
 /// Supports optional [prefix], [description], [suffix], [borderRadius], and [onPressed].
-class LItem extends StatefulWidget {
+class DItem extends StatefulWidget {
   final Widget? prefix;
   final Widget title;
   final Widget? description;
@@ -94,7 +96,7 @@ class LItem extends StatefulWidget {
   final double minHeight;
   final bool compact;
 
-  const LItem({
+  const DItem({
     super.key,
     this.prefix,
     required this.title,
@@ -113,10 +115,10 @@ class LItem extends StatefulWidget {
   });
 
   @override
-  State<LItem> createState() => _LItemState();
+  State<DItem> createState() => _DItemState();
 }
 
-class _LItemState extends State<LItem> {
+class _DItemState extends State<DItem> {
   bool _hovered = false;
   bool _pressed = false;
 
@@ -163,28 +165,29 @@ class _LItemState extends State<LItem> {
 
     Widget titleWidget = widget.title;
     if (titleWidget is Text) {
-      final TextStyle defaultTitleStyle = theme.typography.md.copyWith(
+      titleWidget = DText(
+        titleWidget.data ?? '',
+        size: DTextSize.base,
         color: titleColor,
-        fontWeight: FontWeight.w500,
-        fontSize: 16,
-        height: 1.2,
-      );
-      titleWidget = DefaultTextStyle.merge(
-        style: defaultTitleStyle,
-        child: titleWidget,
+        weight: titleWidget.style?.fontWeight ?? FontWeight.w500,
+        textAlign: titleWidget.textAlign,
+        maxLines: titleWidget.maxLines,
+        overflow: titleWidget.overflow,
+        softWrap: titleWidget.softWrap ?? true,
       );
     }
 
     Widget? descriptionWidget = widget.description;
     if (descriptionWidget is Text) {
-      final TextStyle defaultDescriptionStyle = theme.typography.sm.copyWith(
+      descriptionWidget = DText(
+        descriptionWidget.data ?? '',
+        size: DTextSize.sm,
         color: descriptionColor,
-        fontSize: 14,
-        height: 1.2,
-      );
-      descriptionWidget = DefaultTextStyle.merge(
-        style: defaultDescriptionStyle,
-        child: descriptionWidget,
+        weight: descriptionWidget.style?.fontWeight ?? FontWeight.w400,
+        textAlign: descriptionWidget.textAlign,
+        maxLines: descriptionWidget.maxLines,
+        overflow: descriptionWidget.overflow,
+        softWrap: descriptionWidget.softWrap ?? true,
       );
     }
 

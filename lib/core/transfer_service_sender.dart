@@ -69,12 +69,15 @@ extension SenderX on DinoshareTransferService {
 
     _peerAddress = peer.address;
     _peerControlPort = peer.port;
+    debugPrint('[TransferService] Sender connecting to peer ${peer.name} at ${peer.address}:${peer.port}');
     try {
+      debugPrint('[TransferService] Attempting Socket.connect to ${peer.address}:${peer.port}');
       final handshakeSocket = await Socket.connect(
         peer.address,
         peer.port,
         timeout: const Duration(seconds: 5),
       );
+      debugPrint('[TransferService] Socket connected successfully');
       _activeSockets.add(handshakeSocket);
       _setSocketOptions(handshakeSocket);
 
@@ -93,17 +96,23 @@ extension SenderX on DinoshareTransferService {
       final helloPayload = jsonEncode({
         'type': 'hello',
         'sessionId': sessionId,
+        'senderId': peer.id,
         'senderName': senderName,
+        'senderDeviceType': peer.deviceType,
         'pubKey': base64Encode(_sessionCrypto!.publicKeyBytes),
         'fullPower': _fullPowerMode,
         'controlPort': _controlPort,
       });
+      debugPrint('[TransferService] Sending hello payload to receiver');
       handshakeSocket.add(utf8.encode('$helloPayload\n'));
       await handshakeSocket.flush();
+      debugPrint('[TransferService] Waiting for hello_ack from receiver');
 
       final ackLine = await reader.readLine();
+      debugPrint('[TransferService] Received ack line: $ackLine');
       final ack = jsonDecode(ackLine) as Map<String, dynamic>;
       if (ack['type'] != 'hello_ack') {
+        debugPrint('[TransferService] ERROR: Expected hello_ack, got ${ack['type']}');
         _finishSession(
           status: TransferStatus.failed,
           error: 'Handshake failed',
@@ -122,6 +131,7 @@ extension SenderX on DinoshareTransferService {
       await _sessionCrypto!.deriveKey(receiverPubKeyBytes, sessionId);
       _sessionKey = _sessionCrypto!.sessionKey;
 
+      debugPrint('[TransferService] Sending transfer_request to receiver');
       await _writeEncryptedJson(handshakeSocket, {
         'type': 'transfer_request',
         'topLevelCount': selection.topLevelCount,
@@ -130,7 +140,9 @@ extension SenderX on DinoshareTransferService {
       }, _sessionKey!);
       await handshakeSocket.flush();
 
+      debugPrint('[TransferService] Waiting for accept/reject response');
       final response = await _readEncryptedJson(reader, _sessionKey!);
+      debugPrint('[TransferService] Received response: ${response['type']}');
       await handshakeSocket.close();
       _activeSockets.remove(handshakeSocket);
 
@@ -139,6 +151,7 @@ extension SenderX on DinoshareTransferService {
         return TransferStatus.rejected;
       }
     } catch (err) {
+      debugPrint('[TransferService] ERROR during handshake: $err');
       _finishSession(
         status: TransferStatus.failed,
         error: 'Could not connect to device.',

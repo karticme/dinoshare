@@ -1,28 +1,30 @@
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:dinoshare/style/typography.dart';
+import 'package:dinoshare/util/utility_function.dart';
 import 'package:flutter/widgets.dart';
 import 'package:forui/forui.dart';
 
-class LHeader extends StatefulWidget {
-  final Widget child;
+class DHeader extends StatefulWidget {
+  final String title;
   final List<Widget> prefix;
   final List<Widget> suffix;
   final bool nested;
 
-  const LHeader({
+  const DHeader({
     super.key,
-    this.child = const SizedBox.shrink(),
+    this.title = '',
     this.prefix = const [],
     this.suffix = const [],
     this.nested = false,
   });
 
   @override
-  State<LHeader> createState() => _LHeaderState();
+  State<DHeader> createState() => _DHeaderState();
 }
 
-class _LHeaderState extends State<LHeader> with SingleTickerProviderStateMixin {
+class _DHeaderState extends State<DHeader> with SingleTickerProviderStateMixin {
   final GlobalKey _prefixKey = GlobalKey();
   final GlobalKey _suffixKey = GlobalKey();
   double _sideWidth = 0;
@@ -34,7 +36,7 @@ class _LHeaderState extends State<LHeader> with SingleTickerProviderStateMixin {
   }
 
   @override
-  void didUpdateWidget(covariant LHeader oldWidget) {
+  void didUpdateWidget(covariant DHeader oldWidget) {
     super.didUpdateWidget(oldWidget);
     WidgetsBinding.instance.addPostFrameCallback(_updateSideWidth);
   }
@@ -57,46 +59,45 @@ class _LHeaderState extends State<LHeader> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
-    final desktop = Platform.isMacOS || Platform.isWindows || Platform.isLinux;
 
-    Widget titleWidget;
-    if (widget.child is Text && (widget.child as Text).style == null) {
-      titleWidget = Text(
-        (widget.child as Text).data ?? '',
-        style: theme.typography.lg.copyWith(
-          fontSize:
-              desktop
-                  ? 18
-                  : widget.nested
-                  ? 24
-                  : 30,
-          color: theme.colors.foreground,
-          fontWeight: desktop ? FontWeight.w600 : FontWeight.w700,
-          height: 1.2,
-        ),
-      );
-    } else {
-      titleWidget = widget.child;
-    }
+    Widget titleWidget = DText(
+      widget.title,
+      size:
+          isDesktop()
+              ? DTextSize.h3
+              : widget.nested
+              ? DTextSize.h1
+              : DTextSize.title,
+      color: theme.colors.secondaryForeground,
+    );
 
     return Container(
       width: double.infinity,
-      height: Platform.isMacOS ? 60 : 108,
+      height:
+          isDesktop()
+              ? 56
+              : Platform.isIOS
+              ? 126
+              : 112,
       padding: EdgeInsets.fromLTRB(
-        Platform.isMacOS ? 68 : 24,
-        !desktop ? 62 : 8,
-        Platform.isWindows || Platform.isLinux ? 102 : 24,
-        10,
+        Platform.isMacOS ? 68 : 20,
+        isDesktop()
+            ? 12
+            : Platform.isIOS
+            ? 74
+            : 60,
+        Platform.isWindows || Platform.isLinux ? 102 : 20,
+        12,
       ),
       child: Row(
-        spacing: 4,
+        spacing: 12,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          if (widget.prefix.isNotEmpty || (widget.nested && !desktop))
+          if (widget.prefix.isNotEmpty || (widget.nested && !isDesktop()))
             SizedBox(
               width:
-                  widget.nested && !desktop && _sideWidth > 0
+                  widget.nested && !isDesktop() && _sideWidth > 0
                       ? _sideWidth
                       : null,
               child: Row(
@@ -105,19 +106,14 @@ class _LHeaderState extends State<LHeader> with SingleTickerProviderStateMixin {
                 children: widget.prefix,
               ),
             ),
-          if (widget.nested && !desktop)
+          if (widget.nested && !isDesktop())
             Expanded(child: Center(child: titleWidget))
           else
-            Expanded(
-              child: Padding(
-                padding: EdgeInsetsGeometry.symmetric(horizontal: 4),
-                child: titleWidget,
-              ),
-            ),
-          if (widget.suffix.isNotEmpty || (widget.nested && !desktop))
+            Expanded(child: titleWidget),
+          if (widget.suffix.isNotEmpty || (widget.nested && !isDesktop()))
             SizedBox(
               width:
-                  widget.nested && !desktop && _sideWidth > 0
+                  widget.nested && !isDesktop() && _sideWidth > 0
                       ? _sideWidth
                       : null,
               child: Row(

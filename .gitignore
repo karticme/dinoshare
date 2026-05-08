@@ -126,4 +126,4 @@ app.*.symbols
 graphify-out
 skills-lock.json
 CLAUDE.md
-.DS_Store
+*.DS_Store

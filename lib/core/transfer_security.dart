@@ -126,7 +126,8 @@ Future<String?> mimeWarningForFile(File file, String declaredName) async {
     'application/zip',
     'application/x-zip-compressed',
   };
-  if (benignTypes.contains(detectedMime) || benignTypes.contains(extensionMime)) {
+  if (benignTypes.contains(detectedMime) ||
+      benignTypes.contains(extensionMime)) {
     return null;
   }
 

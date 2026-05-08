@@ -31,9 +31,9 @@ FileTypeIconData fileTypeIconData(
   const audioExt = {'mp3', 'wav', 'flac', 'aac', 'ogg', 'm4a'};
   const archiveExt = {'zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz'};
   const pdfExt = {'pdf'};
-  const docExt = {'doc', 'docx', 'rtf', 'odt'};
-  const sheetExt = {'xls', 'xlsx', 'csv'};
-  const presentationExt = {'ppt', 'pptx'};
+  const docExt = {'doc', 'docx', 'rtf', 'odt', 'pages'};
+  const sheetExt = {'xls', 'xlsx', 'csv', 'numbers', 'ods'};
+  const presentationExt = {'ppt', 'pptx', 'key', 'odp'};
   const codeExt = {
     'dart',
     'js',

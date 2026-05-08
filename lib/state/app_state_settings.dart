@@ -108,6 +108,9 @@ Future<void> loadAppSettings() async {
   // ── History ───────────────────────────────────────────────────────────────
   await _loadTransferHistory();
 
+  // ── Favourite devices ───────────────────────────────────────────────────
+  await _loadFavouriteDevices();
+
   // ── Wire transfer-complete callback ──────────────────────────────────────
   transferService.onTransferComplete = (session) {
     addTransferToHistory(session);
@@ -170,7 +173,9 @@ Future<void> setNotificationsEnabled(bool enabled) async {
     if (!granted) {
       if (Platform.isMacOS) {
         await launchUrl(
-          Uri.parse('x-apple.systempreferences:com.apple.Notifications-Settings'),
+          Uri.parse(
+            'x-apple.systempreferences:com.apple.Notifications-Settings',
+          ),
         );
       } else if (Platform.isIOS) {
         await launchUrl(Uri.parse('app-settings:'));
@@ -185,7 +190,10 @@ Future<void> setNotificationsEnabled(bool enabled) async {
   transferService.notificationsEnabled = enabled;
   await transferService.showStatusNotification(
     title: 'Notifications',
-    body: enabled ? 'Notifications are turned on.' : 'Notifications are turned off.',
+    body:
+        enabled
+            ? 'Notifications are turned on.'
+            : 'Notifications are turned off.',
   );
 }
 
