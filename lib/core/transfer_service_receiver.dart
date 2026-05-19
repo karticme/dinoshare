@@ -7,7 +7,9 @@ extension ReceiverX on DinoshareTransferService {
   // ─────────────────────────────────────────────────────────────────────────
 
   Future<void> startReceiver({required String deviceName}) async {
-    debugPrint('[TransferService] startReceiver called with deviceName=$deviceName');
+    debugPrint(
+      '[TransferService] startReceiver called with deviceName=$deviceName',
+    );
     await initialize();
     _deviceName = deviceName.trim().isEmpty ? 'Dino Device' : deviceName.trim();
     if (_receivingEnabled && _controlServer != null) {
@@ -16,7 +18,9 @@ extension ReceiverX on DinoshareTransferService {
     }
     if (_controlServer == null) {
       _controlPort = await _pickFreePort();
-      debugPrint('[TransferService] Binding control server on port $_controlPort');
+      debugPrint(
+        '[TransferService] Binding control server on port $_controlPort',
+      );
       _controlServer = await ServerSocket.bind(
         InternetAddress.anyIPv4,
         _controlPort,
@@ -30,13 +34,15 @@ extension ReceiverX on DinoshareTransferService {
     await _ensureDiscoverySocket();
     await _joinMulticast();
     _discoverySocket?.readEventsEnabled = true;
-    debugPrint('[TransferService] Receiver started, broadcasting as $_deviceName');
+    debugPrint(
+      '[TransferService] Receiver started, broadcasting as $_deviceName',
+    );
     unawaited(_startBonjourBroadcast());
   }
 
   Future<void> stopReceiver() async {
     _receivingEnabled = false;
-    unawaited(_stopBonjourBroadcast());
+    await _stopBonjourBroadcast();
     await _controlServer?.close();
     _controlServer = null;
     for (final pending in _pendingIncoming.values) {
@@ -62,10 +68,14 @@ extension ReceiverX on DinoshareTransferService {
     }
 
     if (!accept) {
+      debugPrint(
+        '[TransferService] Rejecting incoming request $sessionId by user action',
+      );
       try {
         await _writeEncryptedJson(pending.socket, {
           'type': 'reject',
           'sessionId': sessionId,
+          'reason': 'user_declined',
         }, _sessionKey!);
         await pending.socket.flush();
       } catch (_) {}
@@ -74,7 +84,7 @@ extension ReceiverX on DinoshareTransferService {
       return false;
     }
 
-    if (_receiveBasePath.isEmpty) {
+    if (_normalizeReceiveBasePath(_receiveBasePath) == null) {
       _receiveBasePath = await defaultReceiveDirectory();
     }
     final dir = Directory(_receiveBasePath);
@@ -138,6 +148,37 @@ extension ReceiverX on DinoshareTransferService {
     await pending.socket.close();
     incomingRequest.value = null;
     return true;
+  }
+
+  Future<bool> respondToIncomingText({
+    required String sessionId,
+    required bool accept,
+  }) async {
+    final pending = _pendingIncoming.remove(sessionId);
+    if (pending == null) return false;
+
+    if (_sessionKey == null) {
+      pending.socket.destroy();
+      incomingRequest.value = null;
+      return false;
+    }
+
+    try {
+      await _writeEncryptedJson(pending.socket, {
+        'type': accept ? 'accept' : 'reject',
+        'sessionId': sessionId,
+        if (!accept) 'reason': 'user_declined',
+      }, _sessionKey!);
+      await pending.socket.flush();
+    } catch (_) {
+      pending.socket.destroy();
+      incomingRequest.value = null;
+      return false;
+    }
+
+    await pending.socket.close();
+    incomingRequest.value = null;
+    return accept;
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -216,18 +257,40 @@ extension ReceiverX on DinoshareTransferService {
             .toList();
     final totalBytes = request['totalBytes'] as int;
     final topLevelCount = request['topLevelCount'] as int;
+    final hasText = files.any((file) => file.isText);
 
-    final hasSpace = await _hasSufficientSpace(_receiveBasePath, totalBytes);
-    if (!hasSpace) {
-      try {
-        await _writeEncryptedJson(socket, {
-          'type': 'reject',
-          'reason': 'disk_full',
-        }, _sessionKey!);
-        await socket.flush();
-      } catch (_) {}
-      await socket.close();
-      return;
+    if (!hasText && _normalizeReceiveBasePath(_receiveBasePath) == null) {
+      _receiveBasePath = await defaultReceiveDirectory();
+    }
+    if (!hasText) {
+      final receiveDir = Directory(_receiveBasePath);
+      if (!receiveDir.existsSync()) {
+        try {
+          await receiveDir.create(recursive: true);
+        } catch (err) {
+          debugPrint(
+            '[TransferService] Could not create receive directory '
+            '$_receiveBasePath before showing request: $err',
+          );
+        }
+      }
+      final hasSpace = await _hasSufficientSpace(_receiveBasePath, totalBytes);
+      if (!hasSpace) {
+        debugPrint(
+          '[TransferService] Rejecting incoming request $sessionId because '
+          'receive path $_receiveBasePath does not have enough free space '
+          'for $totalBytes bytes',
+        );
+        try {
+          await _writeEncryptedJson(socket, {
+            'type': 'reject',
+            'reason': 'disk_full',
+          }, _sessionKey!);
+          await socket.flush();
+        } catch (_) {}
+        await socket.close();
+        return;
+      }
     }
 
     _peerAddress = socket.remoteAddress;
@@ -246,10 +309,14 @@ extension ReceiverX on DinoshareTransferService {
       senderDeviceType: senderDeviceType,
       senderFullPower: senderFullPower,
     );
-    debugPrint('[TransferService] Incoming request from $senderName, sessionId=$sessionId');
+    debugPrint(
+      '[TransferService] Incoming request from $senderName, sessionId=$sessionId',
+    );
 
-    if (isFavouriteDevice(senderId)) {
-      debugPrint('[TransferService] Sender $senderName is a favourite device, auto-accepting');
+    if (!hasText && isFavouriteDevice(senderId)) {
+      debugPrint(
+        '[TransferService] Sender $senderName is a favourite device, auto-accepting',
+      );
       _pendingIncoming[sessionId] = _PendingIncoming(
         request: incoming,
         socket: socket,
@@ -262,9 +329,13 @@ extension ReceiverX on DinoshareTransferService {
       request: incoming,
       socket: socket,
     );
-    debugPrint('[TransferService] Setting incomingRequest.value to $senderName');
+    debugPrint(
+      '[TransferService] Setting incomingRequest.value to $senderName',
+    );
     incomingRequest.value = incoming;
-    debugPrint('[TransferService] incomingRequest.value is now: ${incomingRequest.value?.senderName}');
+    debugPrint(
+      '[TransferService] incomingRequest.value is now: ${incomingRequest.value?.senderName}',
+    );
   }
 
   Future<void> _handleFileHello(
@@ -408,7 +479,7 @@ extension ReceiverX on DinoshareTransferService {
 
     final updated = activeSession.value;
     if (updated != null &&
-        updated.completedItems.length >= updated.topLevelCount) {
+        updated.completedItems.length >= updated.files.length) {
       _finishSession(status: TransferStatus.completed);
       await _notifyComplete(updated);
     }

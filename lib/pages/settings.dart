@@ -504,7 +504,7 @@ class _SettingsState extends State<Settings> {
                       DButton(
                         onPressed: () {
                           _openSponsorLink(
-                            "https://github.com/sponsors/01kartic",
+                            "https://github.com/sponsors/karticme",
                           );
                         },
                         size: DButtonSize.xs,
@@ -579,7 +579,7 @@ class _SettingsState extends State<Settings> {
                                   child: GestureDetector(
                                     onTap: () {
                                       _openSponsorLink(
-                                        "https://x.com/01_kartic",
+                                        "https://x.com/karticme",
                                       );
                                     },
                                     child: DText(

@@ -188,10 +188,23 @@ class DinoshareTransferService {
   }
 
   Future<void> setReceiveBasePath(String? customPath) async {
-    _receiveBasePath =
-        (customPath?.trim().isNotEmpty == true)
-            ? customPath!.trim()
-            : await defaultReceiveDirectory();
+    final normalizedPath = _normalizeReceiveBasePath(customPath);
+    _receiveBasePath = normalizedPath ?? await defaultReceiveDirectory();
+  }
+
+  String? _normalizeReceiveBasePath(String? customPath) {
+    final trimmed = customPath?.trim();
+    if (trimmed == null || trimmed.isEmpty) return null;
+
+    final normalized = p.normalize(trimmed);
+    final root = p.rootPrefix(normalized);
+    if (normalized == root || normalized == p.separator) {
+      debugPrint(
+        '[TransferService] Ignoring invalid receive path $trimmed; using default',
+      );
+      return null;
+    }
+    return normalized;
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -360,17 +373,59 @@ class DinoshareTransferService {
   void _appendCompleted(TransferCompletedItem item) {
     final session = activeSession.value;
     if (session == null) return;
+    final nextCompleted = [...session.completedItems, item];
+    final topLevelName = item.topLevelName ?? item.name;
+    final topLevelCompletedBytes = nextCompleted
+        .where(
+          (completed) =>
+              (completed.topLevelName ?? completed.name) == topLevelName,
+        )
+        .fold<int>(0, (sum, completed) => sum + completed.sizeBytes);
+    final topLevelExpectedCount =
+        session.files.where((file) => file.topLevelName == topLevelName).length;
+    final topLevelCompletedCount =
+        nextCompleted
+            .where(
+              (completed) =>
+                  (completed.topLevelName ?? completed.name) == topLevelName,
+            )
+            .length;
+    final topLevelPath =
+        topLevelExpectedCount > 1 &&
+                topLevelCompletedCount >= topLevelExpectedCount
+            ? _topLevelPathForCompletedItem(item)
+            : item.path;
     final updatedAll =
         session.allItems.map((fi) {
-          if (fi.name == item.topLevelName || fi.name == item.name) {
-            return fi.copyWith(bytesTransferred: fi.sizeBytes, path: item.path);
+          if (fi.name == topLevelName || fi.name == item.name) {
+            return fi.copyWith(
+              bytesTransferred: min(topLevelCompletedBytes, fi.sizeBytes),
+              path: topLevelPath,
+            );
           }
           return fi;
         }).toList();
     activeSession.value = session.copyWith(
-      completedItems: [...session.completedItems, item],
+      completedItems: nextCompleted,
       allItems: updatedAll,
     );
+  }
+
+  String _topLevelPathForCompletedItem(TransferCompletedItem item) {
+    final relativePath = item.relativePath;
+    final topLevelName = item.topLevelName;
+    if (relativePath == null ||
+        topLevelName == null ||
+        topLevelName == item.name) {
+      return item.path;
+    }
+
+    var path = item.path;
+    final levelsToTop = max(1, p.split(relativePath).length - 1);
+    for (var i = 0; i < levelsToTop; i++) {
+      path = p.dirname(path);
+    }
+    return path;
   }
 
   void _finishSession({required TransferStatus status, String? error}) {
@@ -448,11 +503,12 @@ class DinoshareTransferService {
 
   Future<bool> requestNotificationPermission() async {
     if (Platform.isAndroid) {
-      final granted = await _notifications
-          .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin
-          >()
-          ?.requestNotificationsPermission();
+      final granted =
+          await _notifications
+              .resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin
+              >()
+              ?.requestNotificationsPermission();
       return granted ?? false;
     }
     if (Platform.isIOS) {

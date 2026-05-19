@@ -171,6 +171,13 @@ Future<int> _freeBytesAt(String dirPath) async {
     } else {
       // `df -k <path>` on macOS/Linux/Android
       final result = await Process.run('df', ['-k', dirPath]);
+      if (result.exitCode != 0) {
+        debugPrint(
+          '[TransferService] Could not check free space at $dirPath: '
+          '${result.stderr}',
+        );
+        return -1;
+      }
       final lines = (result.stdout as String).trim().split('\n');
       if (lines.length >= 2) {
         final parts = lines.last.trim().split(RegExp(r'\s+'));

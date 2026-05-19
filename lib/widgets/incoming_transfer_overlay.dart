@@ -6,6 +6,7 @@ import 'package:dinoshare/style/typography.dart';
 import 'package:dinoshare/widgets/button.dart';
 import 'package:dinoshare/widgets/stacked_dialog.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:forui/forui.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -16,7 +17,8 @@ class IncomingTransferOverlay extends StatefulWidget {
   final Widget child;
 
   @override
-  State<IncomingTransferOverlay> createState() => _IncomingTransferOverlayState();
+  State<IncomingTransferOverlay> createState() =>
+      _IncomingTransferOverlayState();
 }
 
 class _IncomingTransferOverlayState extends State<IncomingTransferOverlay> {
@@ -87,15 +89,30 @@ class _IncomingTransferOverlayState extends State<IncomingTransferOverlay> {
   }
 
   Future<void> _reject(IncomingTransferRequest request) async {
-    await transferService.respondToIncoming(
-      sessionId: request.sessionId,
-      accept: false,
-    );
+    if (_requestText(request) != null) {
+      await transferService.respondToIncomingText(
+        sessionId: request.sessionId,
+        accept: false,
+      );
+    } else {
+      await transferService.respondToIncoming(
+        sessionId: request.sessionId,
+        accept: false,
+      );
+    }
     if (!mounted) return;
     setState(() {
       _accepting = false;
       _starToggled = false;
     });
+  }
+
+  Future<void> _copyText(IncomingTransferRequest request, String text) async {
+    await Clipboard.setData(ClipboardData(text: text));
+    await transferService.respondToIncomingText(
+      sessionId: request.sessionId,
+      accept: true,
+    );
   }
 
   void _toggleFavorite() {
@@ -133,6 +150,11 @@ class _IncomingTransferOverlayState extends State<IncomingTransferOverlay> {
     FThemeData theme,
     IncomingTransferRequest request,
   ) {
+    final text = _requestText(request);
+    if (text != null) {
+      return _buildTextRequestDialog(theme, request, text);
+    }
+
     final lCustom = dinoCustomColors(
       dark: theme.colors.brightness == Brightness.dark,
     );
@@ -140,7 +162,7 @@ class _IncomingTransferOverlayState extends State<IncomingTransferOverlay> {
         request.topLevelCount == 0
             ? request.files.length
             : request.topLevelCount;
-    final fileLabel = '$count file${count == 1 ? '' : 's'}';
+    final fileLabel = _requestItemLabel(request, count);
     final totalLabel = appDataUnit.value.formatSize(request.totalBytes);
     final alreadyFavorite = isFavouriteDevice(request.senderId);
 
@@ -253,6 +275,147 @@ class _IncomingTransferOverlayState extends State<IncomingTransferOverlay> {
         ],
       ),
     );
+  }
+
+  Widget _buildTextRequestDialog(
+    FThemeData theme,
+    IncomingTransferRequest request,
+    String text,
+  ) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+      decoration: BoxDecoration(
+        color: theme.colors.background,
+        border: Border.all(color: theme.colors.border),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: theme.colors.foreground.withValues(alpha: 0.05),
+            offset: const Offset(1, 2),
+            blurRadius: 4,
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        spacing: 14,
+        children: [
+          Row(
+            spacing: 12,
+            children: [
+              HugeIcon(
+                icon: _deviceTypeIconFromRequest(request),
+                size: 32,
+                color: theme.colors.primary,
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    DText(
+                      request.senderName,
+                      size: DTextSize.h3,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    DText(
+                      _deviceTypeLabelFromRequest(request),
+                      color: theme.colors.mutedForeground,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: DText(
+              '${request.senderName} shared a text.',
+              color: theme.colors.mutedForeground,
+            ),
+          ),
+          Container(
+            constraints: const BoxConstraints(maxHeight: 230),
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: theme.colors.secondary,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: theme.colors.border),
+            ),
+            child: SingleChildScrollView(
+              child: DText(text, color: theme.colors.mutedForeground),
+            ),
+          ),
+          Row(
+            spacing: 10,
+            children: [
+              DButton(
+                size: DButtonSize.sm,
+                variant: DButtonVariant.destructive,
+                onPressed: () => _reject(request),
+                prefix: HugeIcon(icon: HugeIcons.strokeRoundedCancel01),
+                child: const Text('Reject'),
+              ),
+              Expanded(
+                child: DButton(
+                  size: DButtonSize.sm,
+                  variant: DButtonVariant.outline,
+                  onPressed: () => _copyText(request, text),
+                  prefix: HugeIcon(icon: HugeIcons.strokeRoundedCopy01),
+                  style: DButtonStyle(width: double.infinity),
+                  child: const Text('Copy'),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _requestItemLabel(IncomingTransferRequest request, int fallbackCount) {
+    final groups = <String, List<TransferFileEntry>>{};
+    for (final file in request.files) {
+      groups.putIfAbsent(file.topLevelName, () => []).add(file);
+    }
+
+    if (groups.isEmpty) {
+      return '$fallbackCount file${fallbackCount == 1 ? '' : 's'}';
+    }
+
+    var folderCount = 0;
+    var fileCount = 0;
+    for (final group in groups.values) {
+      final first = group.first;
+      final isFolder =
+          first.isTopLevelDirectory ||
+          group.length > 1 ||
+          first.relativePath != first.topLevelName;
+      if (isFolder) {
+        folderCount++;
+      } else {
+        fileCount++;
+      }
+    }
+
+    if (folderCount == 0) {
+      return '$fileCount file${fileCount == 1 ? '' : 's'}';
+    }
+    if (fileCount == 0) {
+      return '$folderCount folder${folderCount == 1 ? '' : 's'}';
+    }
+    return '$fileCount file${fileCount == 1 ? '' : 's'} and '
+        '$folderCount folder${folderCount == 1 ? '' : 's'}';
+  }
+
+  String? _requestText(IncomingTransferRequest request) {
+    for (final file in request.files) {
+      if (file.isText && file.textContent != null) return file.textContent;
+    }
+    return null;
   }
 
   String _deviceTypeLabelFromRequest(IncomingTransferRequest request) {

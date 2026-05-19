@@ -15,6 +15,7 @@ import 'package:dinoshare/widgets/button.dart';
 import 'package:dinoshare/widgets/header.dart';
 import 'package:dinoshare/widgets/incoming_transfer_overlay.dart';
 import 'package:dinoshare/widgets/items.dart';
+import 'package:dinoshare/widgets/share_target_picker_sheet.dart';
 import 'package:dinoshare/widgets/transfer_history_group.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -32,7 +33,7 @@ String getGreeting() {
   final hour = DateTime.now().hour;
   if (hour >= 5 && hour < 12) return 'Good Morning';
   if (hour >= 12 && hour < 17) return 'Good Afternoon';
-  if (hour >= 17 && hour < 21) return 'Good Evening';
+  if (hour >= 17 && hour < 23) return 'Good Evening';
   return 'Have a good night !';
 }
 
@@ -98,16 +99,20 @@ class _HomeState extends State<Home> {
                                 icon: HugeIcon(
                                   icon: HugeIcons.strokeRoundedShare03,
                                 ),
-                                onPressed: () async {
-                                  await pickShareTargets(reset: true);
-                                  if (!context.mounted) return;
-                                  if (appShareItems.value.isEmpty) return;
-                                  Navigator.of(context).push(
-                                    CupertinoPageRoute(
-                                      builder: (_) => const Share(),
+                                onPressed:
+                                    () => showShareTargetPickerSheet(
+                                      context,
+                                      reset: true,
+                                      onPicked: () {
+                                        if (!context.mounted) return;
+                                        if (appShareItems.value.isEmpty) return;
+                                        Navigator.of(context).push(
+                                          CupertinoPageRoute(
+                                            builder: (_) => const Share(),
+                                          ),
+                                        );
+                                      },
                                     ),
-                                  );
-                                },
                               ),
                             ),
                             Expanded(

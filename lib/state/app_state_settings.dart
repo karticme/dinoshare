@@ -58,6 +58,10 @@ Future<void> loadAppSettings() async {
 
   // ── Receive path ──────────────────────────────────────────────────────────
   var savedPath = prefs.getString(_kReceivePath);
+  if (_isInvalidReceivePath(savedPath)) {
+    savedPath = null;
+    await prefs.remove(_kReceivePath);
+  }
   if (Platform.isMacOS && savedPath != null) {
     if (savedPath.contains('/Library/Containers/') ||
         savedPath.endsWith('/Dino') ||
@@ -123,15 +127,23 @@ Future<void> loadAppSettings() async {
 
 Future<void> setReceivePath(String? path) async {
   final prefs = await SharedPreferences.getInstance();
-  if (path == null || path.trim().isEmpty) {
+  if (path == null || path.trim().isEmpty || _isInvalidReceivePath(path)) {
     await prefs.remove(_kReceivePath);
     appReceivePath.value = await transferService.defaultReceiveDirectory();
   } else {
-    final norm = path.trim();
+    final norm = p.normalize(path.trim());
     await prefs.setString(_kReceivePath, norm);
     appReceivePath.value = norm;
   }
   await transferService.setReceiveBasePath(appReceivePath.value);
+}
+
+bool _isInvalidReceivePath(String? path) {
+  final trimmed = path?.trim();
+  if (trimmed == null || trimmed.isEmpty) return false;
+  final normalized = p.normalize(trimmed);
+  final root = p.rootPrefix(normalized);
+  return normalized == root || normalized == p.separator;
 }
 
 Future<void> setDeviceName(String name) async {

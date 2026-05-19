@@ -188,6 +188,7 @@ class SelectedShareItem {
     required this.name,
     required this.isDirectory,
     required this.files,
+    this.isSent = false,
   });
 
   final String id;
@@ -195,8 +196,20 @@ class SelectedShareItem {
   final String name;
   final bool isDirectory;
   final List<TransferFileEntry> files;
+  final bool isSent;
+
+  bool get isText => files.length == 1 && files.first.isText;
 
   int get totalBytes => files.fold(0, (sum, f) => sum + f.sizeBytes);
+
+  SelectedShareItem copyWith({bool? isSent}) => SelectedShareItem(
+    id: id,
+    path: path,
+    name: name,
+    isDirectory: isDirectory,
+    files: files,
+    isSent: isSent ?? this.isSent,
+  );
 }
 
 class FavouriteDevice {

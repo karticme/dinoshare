@@ -46,7 +46,10 @@ class TransferFileEntry {
     required this.name,
     required this.sizeBytes,
     required this.topLevelName,
+    this.isTopLevelDirectory = false,
     this.storedPath,
+    this.isText = false,
+    this.textContent,
   });
 
   final String sourcePath;
@@ -55,6 +58,9 @@ class TransferFileEntry {
   final String name;
   final int sizeBytes;
   final String topLevelName;
+  final bool isTopLevelDirectory;
+  final bool isText;
+  final String? textContent;
 
   Future<String> get resolvedSourcePath => Future.value(sourcePath);
 
@@ -63,6 +69,9 @@ class TransferFileEntry {
     'name': name,
     'sizeBytes': sizeBytes,
     'topLevelName': topLevelName,
+    'isTopLevelDirectory': isTopLevelDirectory,
+    'isText': isText,
+    'textContent': textContent,
   };
 
   static TransferFileEntry fromJson(Map<String, dynamic> j) =>
@@ -72,6 +81,9 @@ class TransferFileEntry {
         name: j['name'] as String,
         sizeBytes: j['sizeBytes'] as int,
         topLevelName: j['topLevelName'] as String,
+        isTopLevelDirectory: (j['isTopLevelDirectory'] as bool?) ?? false,
+        isText: (j['isText'] as bool?) ?? false,
+        textContent: j['textContent'] as String?,
       );
 }
 

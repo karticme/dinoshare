@@ -13,6 +13,7 @@ extension SenderX on DinoshareTransferService {
   }) async {
     _localStopRequested = false;
     if (selection.files.isEmpty) return TransferStatus.failed;
+    final isTextOnly = selection.files.every((file) => file.isText);
 
     final sessionId = _buildSessionId();
     final started = DateTime.now();
@@ -49,29 +50,35 @@ extension SenderX on DinoshareTransferService {
             )
             .toList();
 
-    activeSession.value = TransferSession(
-      sessionId: sessionId,
-      role: TransferRole.sending,
-      status: TransferStatus.requesting,
-      peerName: peer.name,
-      totalBytes: selection.totalBytes,
-      bytesTransferred: 0,
-      currentFile: null,
-      currentSpeedBytesPerSec: 0,
-      peakSpeedBytesPerSec: 0,
-      topLevelCount: selection.topLevelCount,
-      startedAt: started,
-      completedItems: const [],
-      allItems: allItems,
-      files: selection.files,
-    );
-    _startSpeedTimer();
+    if (!isTextOnly) {
+      activeSession.value = TransferSession(
+        sessionId: sessionId,
+        role: TransferRole.sending,
+        status: TransferStatus.requesting,
+        peerName: peer.name,
+        totalBytes: selection.totalBytes,
+        bytesTransferred: 0,
+        currentFile: null,
+        currentSpeedBytesPerSec: 0,
+        peakSpeedBytesPerSec: 0,
+        topLevelCount: selection.topLevelCount,
+        startedAt: started,
+        completedItems: const [],
+        allItems: allItems,
+        files: selection.files,
+      );
+      _startSpeedTimer();
+    }
 
     _peerAddress = peer.address;
     _peerControlPort = peer.port;
-    debugPrint('[TransferService] Sender connecting to peer ${peer.name} at ${peer.address}:${peer.port}');
+    debugPrint(
+      '[TransferService] Sender connecting to peer ${peer.name} at ${peer.address}:${peer.port}',
+    );
     try {
-      debugPrint('[TransferService] Attempting Socket.connect to ${peer.address}:${peer.port}');
+      debugPrint(
+        '[TransferService] Attempting Socket.connect to ${peer.address}:${peer.port}',
+      );
       final handshakeSocket = await Socket.connect(
         peer.address,
         peer.port,
@@ -96,7 +103,7 @@ extension SenderX on DinoshareTransferService {
       final helloPayload = jsonEncode({
         'type': 'hello',
         'sessionId': sessionId,
-        'senderId': peer.id,
+        'senderId': _deviceId,
         'senderName': senderName,
         'senderDeviceType': _getDeviceTypeString(),
         'pubKey': base64Encode(_sessionCrypto!.publicKeyBytes),
@@ -112,7 +119,9 @@ extension SenderX on DinoshareTransferService {
       debugPrint('[TransferService] Received ack line: $ackLine');
       final ack = jsonDecode(ackLine) as Map<String, dynamic>;
       if (ack['type'] != 'hello_ack') {
-        debugPrint('[TransferService] ERROR: Expected hello_ack, got ${ack['type']}');
+        debugPrint(
+          '[TransferService] ERROR: Expected hello_ack, got ${ack['type']}',
+        );
         _finishSession(
           status: TransferStatus.failed,
           error: 'Handshake failed',
@@ -142,21 +151,37 @@ extension SenderX on DinoshareTransferService {
 
       debugPrint('[TransferService] Waiting for accept/reject response');
       final response = await _readEncryptedJson(reader, _sessionKey!);
-      debugPrint('[TransferService] Received response: ${response['type']}');
+      final responseType = response['type'];
+      final responseReason = response['reason'];
+      debugPrint(
+        '[TransferService] Received response: $responseType'
+        '${responseReason == null ? '' : ' reason=$responseReason'}',
+      );
       await handshakeSocket.close();
       _activeSockets.remove(handshakeSocket);
 
-      if (response['type'] != 'accept') {
+      if (responseType != 'accept') {
         _finishSession(status: TransferStatus.rejected);
         return TransferStatus.rejected;
       }
     } catch (err) {
       debugPrint('[TransferService] ERROR during handshake: $err');
+      if (err is SocketException) {
+        _peerMap.remove(peer.id);
+        _bonjourPeerIds.remove(peer.id);
+        discoveredPeers.value =
+            _peerMap.values.toList()..sort((a, b) => a.name.compareTo(b.name));
+      }
       _finishSession(
         status: TransferStatus.failed,
         error: 'Could not connect to device.',
       );
       return TransferStatus.failed;
+    }
+
+    if (isTextOnly) {
+      _finishSession(status: TransferStatus.completed);
+      return TransferStatus.completed;
     }
 
     _setSessionStatus(TransferStatus.inProgress);

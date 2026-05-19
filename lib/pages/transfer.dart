@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:dinoshare/pages/folder_details.dart';
+import 'package:dinoshare/pages/home.dart';
 import 'package:dinoshare/style/typography.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:forui/forui.dart';
@@ -113,11 +115,18 @@ class _TransferState extends State<Transfer> {
                     DButton(
                       size: DButtonSize.xs,
                       variant: DButtonVariant.ghost,
+                      style:
+                          Platform.isAndroid || Platform.isIOS
+                              ? const DButtonStyle(width: 64)
+                              : null,
                       child: Text('Done'),
-                      onPressed:
-                          () => Navigator.of(
-                            context,
-                          ).popUntil((route) => route.isFirst),
+                      onPressed: () {
+                        transferService.clearCompletedSession();
+                        Navigator.of(context).pushAndRemoveUntil(
+                          CupertinoPageRoute(builder: (_) => const Home()),
+                          (_) => false,
+                        );
+                      },
                     ),
                 ],
                 title: title,
@@ -221,12 +230,31 @@ class _TransferState extends State<Transfer> {
       } catch (_) {}
     }
 
+    final folderFiles =
+        session.files.where((file) => file.topLevelName == item.name).toList();
+    final completedFolderFiles =
+        session.completedItems
+            .where((file) => (file.topLevelName ?? file.name) == item.name)
+            .toList();
+    final isFolder =
+        folderFiles.length > 1 ||
+        (folderFiles.length == 1 &&
+            folderFiles.first.topLevelName != folderFiles.first.name);
+    final canOpenFolder =
+        isFolder &&
+        isCompleted &&
+        (session.role == TransferRole.sending ||
+            completedFolderFiles.length >= folderFiles.length);
     final canOpen =
+        !isFolder &&
         isCompleted &&
         completedItem?.path != null &&
         storedFileExists(completedItem!.path) &&
         !isDangerousFileName(item.name);
-    final previewPath = completedItem?.path ?? item.path ?? '';
+    final previewPath =
+        isFolder
+            ? (item.path ?? completedItem?.path ?? '')
+            : (completedItem?.path ?? item.path ?? '');
     final previewName = completedItem?.name ?? item.name;
     final canShowPreview =
         previewPath.isNotEmpty &&
@@ -238,7 +266,7 @@ class _TransferState extends State<Transfer> {
       prefix: FileThumbnail(
         path: previewPath,
         name: previewName,
-        isDirectory: _isDirectoryPath(previewPath),
+        isDirectory: isFolder || _isDirectoryPath(previewPath),
         size: 48,
         borderRadius: 6,
         showThumbnail: canShowPreview,
@@ -252,8 +280,69 @@ class _TransferState extends State<Transfer> {
                 padding: EdgeInsets.symmetric(horizontal: 4),
                 child: DCircularProgress(value: item.progress * 100, size: 24),
               )
+              : isFolder
+              ? HugeIcon(
+                icon: HugeIcons.strokeRoundedArrowRight01,
+                size: 16,
+                color: theme.colors.mutedForeground,
+              )
               : null,
-      onPressed: canOpen ? () => openStoredFile(completedItem!.path) : null,
+      onPressed:
+          canOpenFolder
+              ? () => _openFolder(context, session, item.name)
+              : canOpen
+              ? () => openStoredFile(completedItem!.path)
+              : null,
+    );
+  }
+
+  void _openFolder(
+    BuildContext context,
+    TransferSession session,
+    String topLevelName,
+  ) {
+    final completedFiles =
+        session.completedItems
+            .where((file) => (file.topLevelName ?? file.name) == topLevelName)
+            .toList();
+    final sendingFiles =
+        session.files
+            .where((file) => file.topLevelName == topLevelName)
+            .toList();
+    final directionLabel =
+        session.role == TransferRole.sending
+            ? 'To ${session.peerName}'
+            : 'From ${session.peerName}';
+
+    Navigator.of(context).push(
+      CupertinoPageRoute(
+        builder:
+            (_) => FolderDetails(
+              title: topLevelName,
+              directionLabel: directionLabel,
+              isSending: session.role == TransferRole.sending,
+              items:
+                  (completedFiles.isNotEmpty
+                          ? completedFiles.map(
+                            (file) => FolderContentItem(
+                              name: file.name,
+                              path: file.path,
+                              sizeBytes: file.sizeBytes,
+                              relativePath: file.relativePath,
+                              mimeWarning: file.mimeWarning,
+                            ),
+                          )
+                          : sendingFiles.map(
+                            (file) => FolderContentItem(
+                              name: file.name,
+                              path: file.storedPath ?? file.sourcePath,
+                              sizeBytes: file.sizeBytes,
+                              relativePath: file.relativePath,
+                            ),
+                          ))
+                      .toList(),
+            ),
+      ),
     );
   }
 

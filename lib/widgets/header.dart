@@ -48,7 +48,12 @@ class _DHeaderState extends State<DHeader> with SingleTickerProviderStateMixin {
     if (prefixContext == null || suffixContext == null) return;
     final prefixWidth = prefixContext.size?.width ?? 0;
     final suffixWidth = suffixContext.size?.width ?? 0;
-    final maxWidth = math.max(prefixWidth, suffixWidth);
+    final minInteractiveWidth =
+        widget.prefix.isNotEmpty || widget.suffix.isNotEmpty ? 44.0 : 0.0;
+    final maxWidth = math.max(
+      minInteractiveWidth,
+      math.max(prefixWidth, suffixWidth),
+    );
     if ((maxWidth - _sideWidth).abs() > 0.5) {
       setState(() {
         _sideWidth = maxWidth;

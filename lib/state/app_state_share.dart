@@ -6,14 +6,19 @@ part of 'state_index.dart';
 
 final appPickingActive = ValueNotifier<bool>(false);
 
+enum ShareTargetType { file, folder }
+
 // Method channel to our native Android picker (no-copy via file descriptor).
 const _pickerChannel = MethodChannel('dinoshare/picker');
 
-Future<void> pickShareTargets({bool reset = false}) async {
+Future<void> pickShareTargets({
+  bool reset = false,
+  ShareTargetType type = ShareTargetType.file,
+}) async {
   if (appPickingActive.value) return;
   appPickingActive.value = true;
   try {
-    await _pickShareTargets(reset: reset);
+    await _pickShareTargets(reset: reset, type: type);
   } finally {
     appPickingActive.value = false;
   }
@@ -37,11 +42,29 @@ Future<T?> _pickerCall<T>(Future<T?> Function() call) async {
   }
 }
 
-Future<void> _pickShareTargets({bool reset = false}) async {
-  final nextItems = <SelectedShareItem>[if (!reset) ...appShareItems.value];
+Future<void> _pickShareTargets({
+  bool reset = false,
+  required ShareTargetType type,
+}) async {
+  final nextItems = <SelectedShareItem>[
+    if (!reset) ...appShareItems.value.where((item) => !item.isText),
+  ];
+
+  if (type == ShareTargetType.folder) {
+    final dirPath = await _pickerCall(
+      () => FilePicker.platform.getDirectoryPath(
+        dialogTitle: 'Pick folder to share',
+      ),
+    );
+    if (dirPath != null && dirPath.trim().isNotEmpty) {
+      await _addDirectory(p.normalize(dirPath), nextItems);
+    }
+    appShareItems.value = nextItems;
+    return;
+  }
 
   if (Platform.isMacOS) {
-    // ── macOS: allow any file or directory ───────────────────────────────────
+    // ── macOS: file picker ──────────────────────────────────────────────────
     final result = await _pickerCall(
       () => FilePicker.platform.pickFiles(
         allowMultiple: true,
@@ -57,9 +80,7 @@ Future<void> _pickShareTargets({bool reset = false}) async {
         if (nextItems.any((i) => p.normalize(i.path) == norm)) continue;
 
         final entityType = FileSystemEntity.typeSync(norm);
-        if (entityType == FileSystemEntityType.directory) {
-          await _addDirectory(norm, nextItems);
-        } else if (entityType == FileSystemEntityType.file) {
+        if (entityType == FileSystemEntityType.file) {
           final file = File(norm);
           final stat = await file.stat();
           final name = p.basename(norm);
@@ -76,21 +97,12 @@ Future<void> _pickShareTargets({bool reset = false}) async {
                   name: name,
                   sizeBytes: stat.size,
                   topLevelName: name,
+                  isTopLevelDirectory: false,
                 ),
               ],
             ),
           );
         }
-      }
-    }
-    if (nextItems.length == (reset ? 0 : appShareItems.value.length)) {
-      final dirPath = await _pickerCall(
-        () => FilePicker.platform.getDirectoryPath(
-          dialogTitle: 'Pick folder to share',
-        ),
-      );
-      if (dirPath != null && dirPath.trim().isNotEmpty) {
-        await _addDirectory(p.normalize(dirPath), nextItems);
       }
     }
   } else if (Platform.isAndroid) {
@@ -139,21 +151,11 @@ Future<void> _pickShareTargets({bool reset = false}) async {
                 name: af.name,
                 sizeBytes: af.size,
                 topLevelName: af.name,
+                isTopLevelDirectory: false,
               ),
             ],
           ),
         );
-      }
-    }
-
-    if (nextItems.length == (reset ? 0 : appShareItems.value.length)) {
-      final dirPath = await _pickerCall(
-        () => FilePicker.platform.getDirectoryPath(
-          dialogTitle: 'Pick folder to share',
-        ),
-      );
-      if (dirPath != null && dirPath.trim().isNotEmpty) {
-        await _addDirectory(p.normalize(dirPath), nextItems);
       }
     }
   } else {
@@ -184,25 +186,60 @@ Future<void> _pickShareTargets({bool reset = false}) async {
                 name: pf.name,
                 sizeBytes: pf.size,
                 topLevelName: pf.name,
+                isTopLevelDirectory: false,
               ),
             ],
           ),
         );
       }
     }
-    if (nextItems.length == (reset ? 0 : appShareItems.value.length)) {
-      final dirPath = await _pickerCall(
-        () => FilePicker.platform.getDirectoryPath(
-          dialogTitle: 'Pick folder to share',
-        ),
-      );
-      if (dirPath != null && dirPath.trim().isNotEmpty) {
-        await _addDirectory(p.normalize(dirPath), nextItems);
-      }
-    }
   }
 
   appShareItems.value = nextItems;
+}
+
+Future<bool> addTextShareTarget({
+  required String text,
+  bool reset = false,
+}) async {
+  final value = text.trim();
+  if (value.isEmpty) return false;
+
+  final nextItems = <SelectedShareItem>[];
+  final label = _textShareLabel(value);
+  nextItems.add(
+    SelectedShareItem(
+      id: _shareId(nextItems.length),
+      path: 'text://${DateTime.now().microsecondsSinceEpoch}',
+      name: label,
+      isDirectory: false,
+      files: [
+        TransferFileEntry(
+          sourcePath: '',
+          relativePath: label,
+          name: label,
+          sizeBytes: utf8.encode(value).length,
+          topLevelName: label,
+          isText: true,
+          textContent: value,
+        ),
+      ],
+    ),
+  );
+  appShareItems.value = nextItems;
+  return true;
+}
+
+Future<bool> addClipboardTextShareTarget({bool reset = false}) async {
+  final data = await Clipboard.getData(Clipboard.kTextPlain);
+  return addTextShareTarget(text: data?.text ?? '', reset: reset);
+}
+
+void markShareTargetSent(String id) {
+  appShareItems.value =
+      appShareItems.value
+          .map((item) => item.id == id ? item.copyWith(isSent: true) : item)
+          .toList();
 }
 
 Future<void> _addDirectory(
@@ -248,6 +285,7 @@ Future<List<TransferFileEntry>> _expandDirectory(
 ) async {
   final entries = <TransferFileEntry>[];
   await for (final entity in root.list(recursive: true, followLinks: false)) {
+    if (_isIgnoredSystemEntity(entity.path, root.path)) continue;
     if (entity is! File) continue;
     final stat = await entity.stat();
     final relInside = p.relative(entity.path, from: root.path);
@@ -258,11 +296,44 @@ Future<List<TransferFileEntry>> _expandDirectory(
         name: p.basename(entity.path),
         sizeBytes: stat.size,
         topLevelName: topLevelName,
+        isTopLevelDirectory: true,
       ),
     );
   }
   return entries;
 }
+
+bool _isIgnoredSystemEntity(String entityPath, String rootPath) {
+  final relativePath = p.relative(entityPath, from: rootPath);
+  final parts = p.split(relativePath);
+  for (final part in parts) {
+    if (_ignoredSystemNames.contains(part)) return true;
+    if (part.startsWith('._')) return true;
+  }
+  return false;
+}
+
+String _textShareLabel(String text) {
+  final flattened = text.replaceAll(RegExp(r'\s+'), ' ').trim();
+  if (flattened.length <= 48) return flattened;
+  return '${flattened.substring(0, 48)}...';
+}
+
+const _ignoredSystemNames = {
+  '.DS_Store',
+  '.AppleDouble',
+  '.LSOverride',
+  '.Spotlight-V100',
+  '.Trashes',
+  '.TemporaryItems',
+  '.fseventsd',
+  '.DocumentRevisions-V100',
+  '.apdisk',
+  '__MACOSX',
+  'Icon\r',
+  'Thumbs.db',
+  'desktop.ini',
+};
 
 String _shareId(int n) => '${DateTime.now().microsecondsSinceEpoch}_$n';
 
