@@ -47,11 +47,7 @@ class _DesktopDropOverlayState extends State<DesktopDropOverlay> {
       child: Stack(
         children: [
           widget.child,
-          if (_dragging)
-            MouseRegion(
-              cursor: SystemMouseCursors.copy,
-              child: _buildOverlay(context),
-            ),
+          if (_dragging) _buildOverlay(context),
         ],
       ),
     );
@@ -139,17 +135,25 @@ class _DesktopDropOverlayState extends State<DesktopDropOverlay> {
   }
 
   Widget _buildOverlay(BuildContext context) {
+    return Positioned.fill(
+      child: MouseRegion(
+        cursor: SystemMouseCursors.copy,
+        child: _buildOverlayContent(context),
+      ),
+    );
+  }
+
+  Widget _buildOverlayContent(BuildContext context) {
     final theme = context.theme;
     final lCustom = dinoCustomColors(
       dark: theme.colors.brightness == Brightness.dark,
     );
 
-    return Positioned.fill(
-      child: BackdropFilter(
+    return BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 12.0, sigmaY: 12.0),
         child: Container(
           padding: EdgeInsets.fromLTRB(20, 56, 20, 20),
-          color: theme.colors.background.withAlpha(40),
+          color: theme.colors.barrier,
           child: Row(
             children: [
               Expanded(
@@ -193,7 +197,8 @@ class _DesktopDropOverlayState extends State<DesktopDropOverlay> {
                         DText(
                           'Add files/folders/etc\nto share with a local device',
                           size: DTextSize.sm,
-                          color: theme.colors.foreground.withAlpha(180),
+                          weight: FontWeight.w500,
+                          color: theme.colors.foreground.withAlpha(160),
                           textAlign: TextAlign.center,
                         ),
                       ],
@@ -204,7 +209,6 @@ class _DesktopDropOverlayState extends State<DesktopDropOverlay> {
             ],
           ),
         ),
-      ),
     );
   }
 
