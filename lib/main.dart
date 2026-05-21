@@ -121,12 +121,16 @@ class _DinoshareAppState extends State<DinoshareApp>
               supportedLocales: FLocalizations.supportedLocales,
               home: appOnboardingDone ? const Home() : const Onboarding(),
               builder:
-                  (context, child) => IncomingTransferOverlay(
-                    child: SafeArea(
-                      top: false,
-                      left: false,
-                      right: false,
-                      child: child!,
+                  (context, child) => MediaQuery.removePadding(
+                    removeTop: true,
+                    context: context,
+                    child: IncomingTransferOverlay(
+                      child: SafeArea(
+                        top: false,
+                        left: false,
+                        right: false,
+                        child: child!,
+                      ),
                     ),
                   ),
             ),

@@ -76,74 +76,67 @@ class _ShareState extends State<Share> {
                         padding: EdgeInsetsGeometry.symmetric(horizontal: 16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          spacing: 24,
+                          spacing: 8,
                           children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              spacing: 8,
-                              children: [
-                                Padding(
-                                  padding: EdgeInsetsGeometry.fromLTRB(
-                                    12,
-                                    12,
-                                    12,
-                                    0,
-                                  ),
-                                  child: DText(
-                                    'Selected Files',
-                                    weight: FontWeight.w500,
-                                    color: theme.colors.mutedForeground,
-                                  ),
-                                ),
-                                DItemList(
-                                  borderRadius: BorderRadius.circular(14),
-                                  children:
-                                      items
-                                          .map(
-                                            (item) => DItem(
-                                              prefix: HugeIcon(
-                                                icon:
-                                                    item.isText
-                                                        ? HugeIcons
-                                                            .strokeRoundedText
-                                                        : item.isDirectory
-                                                        ? HugeIcons
-                                                            .strokeRoundedFolder01
-                                                        : fileTypeIconData(
-                                                          item.name,
-                                                        ).icon.icon,
-                                                size: 20,
-                                                color: theme.colors.primary,
-                                                strokeWidth: 2,
-                                              ),
-                                              title: Text(
-                                                item.name,
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                              suffix: GestureDetector(
-                                                onTap:
-                                                    () => removeShareTarget(
-                                                      item.id,
-                                                    ),
-                                                child: HugeIcon(
-                                                  icon:
-                                                      HugeIcons
-                                                          .strokeRoundedCancel01,
-                                                  size: 16,
-                                                  color: lCustom.ring,
-                                                  strokeWidth: 2,
-                                                ),
-                                              ),
-                                              padding: EdgeInsets.symmetric(
-                                                horizontal: 16,
-                                                vertical: 10,
-                                              ),
+                            Padding(
+                              padding: EdgeInsetsGeometry.fromLTRB(
+                                12,
+                                12,
+                                12,
+                                0,
+                              ),
+                              child: DText(
+                                'Selected Files',
+                                weight: FontWeight.w500,
+                                color: theme.colors.mutedForeground,
+                              ),
+                            ),
+                            DItemList(
+                              borderRadius: BorderRadius.circular(14),
+                              children:
+                                  items
+                                      .map(
+                                        (item) => DItem(
+                                          prefix: HugeIcon(
+                                            icon:
+                                                item.isText
+                                                    ? HugeIcons
+                                                        .strokeRoundedText
+                                                    : item.isDirectory
+                                                    ? HugeIcons
+                                                        .strokeRoundedFolder01
+                                                    : fileTypeIconData(
+                                                      item.name,
+                                                    ).icon.icon,
+                                            size: 20,
+                                            color: theme.colors.primary,
+                                            strokeWidth: 2,
+                                          ),
+                                          title: Text(
+                                            item.name,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          suffix: GestureDetector(
+                                            onTap:
+                                                () =>
+                                                    removeShareTarget(item.id),
+                                            child: HugeIcon(
+                                              icon:
+                                                  HugeIcons
+                                                      .strokeRoundedCancel01,
+                                              size: 16,
+                                              color: lCustom.ring,
+                                              strokeWidth: 2,
                                             ),
-                                          )
-                                          .toList(),
-                                ),
-                              ],
+                                          ),
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 10,
+                                          ),
+                                        ),
+                                      )
+                                      .toList(),
                             ),
                           ],
                         ),
@@ -273,7 +266,9 @@ class _DevicePickerSheetState extends State<_DevicePickerSheet>
         if (!mounted) return;
         Navigator.of(context).pop();
         Navigator.of(widget.parentContext).pushReplacement(
-          CupertinoPageRoute(builder: (_) => Transfer(role: TransferRole.sending)),
+          CupertinoPageRoute(
+            builder: (_) => Transfer(role: TransferRole.sending),
+          ),
         );
       });
     } else if (session.status == TransferStatus.rejected ||
@@ -441,8 +436,7 @@ class _DevicePickerSheetState extends State<_DevicePickerSheet>
                                                         HugeIcons
                                                             .strokeRoundedTick02,
                                                     size: 20,
-                                                    color:
-                                                        theme.colors.primary,
+                                                    color: theme.colors.primary,
                                                   )
                                                   : isLoading
                                                   ? FCircularProgress.loader(
