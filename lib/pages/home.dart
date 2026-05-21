@@ -246,7 +246,7 @@ class _HomeState extends State<Home> {
                         24,
                         40,
                         24,
-                        24,
+                        20,
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,

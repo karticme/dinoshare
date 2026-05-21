@@ -6,7 +6,6 @@ import 'package:dinoshare/widgets/file_thumbnail.dart';
 import 'package:dinoshare/widgets/header.dart';
 import 'package:dinoshare/widgets/items.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/widgets.dart';
 import 'package:forui/forui.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:path/path.dart' as p;
@@ -32,12 +31,14 @@ class FolderDetails extends StatefulWidget {
     super.key,
     required this.title,
     required this.items,
+    this.breadcrumb = const [],
     this.directionLabel,
     this.isSending = false,
   });
 
   final String title;
   final List<FolderContentItem> items;
+  final List<String> breadcrumb;
   final String? directionLabel;
   final bool isSending;
 
@@ -46,14 +47,6 @@ class FolderDetails extends StatefulWidget {
 }
 
 class _FolderDetailsState extends State<FolderDetails> {
-  late List<String> _path;
-
-  @override
-  void initState() {
-    super.initState();
-    _path = const [];
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
@@ -73,7 +66,7 @@ class _FolderDetailsState extends State<FolderDetails> {
                 child: HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01),
               ),
             ],
-            title: _path.isEmpty ? widget.title : _path.last,
+            title: widget.title,
           ),
           Expanded(
             child: SingleChildScrollView(
@@ -84,32 +77,33 @@ class _FolderDetailsState extends State<FolderDetails> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (widget.directionLabel != null)
-                      DItem(
-                        spacing: 6,
-                        minHeight: 32,
-                        padding: EdgeInsets.fromLTRB(12, 12, 12, 8),
-                        backgroundColor: theme.colors.secondary,
-                        prefix: HugeIcon(
-                          icon:
-                              widget.isSending
-                                  ? HugeIcons.strokeRoundedArrowUpRight03
-                                  : HugeIcons.strokeRoundedArrowDownLeft01,
-                          color:
-                              widget.isSending
-                                  ? const Color(0xFF00A36C)
-                                  : theme.colors.destructive,
-                          size: 18,
-                          strokeWidth: 2,
-                        ),
-                        title: DText(
-                          widget.directionLabel!,
-                          size: DTextSize.sm,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          weight: FontWeight.w400,
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(12, 8, 12, 8),
+                        child: Row(
+                          spacing: 8,
+                          children: [
+                            HugeIcon(
+                              icon:
+                                  widget.isSending
+                                      ? HugeIcons.strokeRoundedArrowUpRight03
+                                      : HugeIcons.strokeRoundedArrowDownLeft01,
+                              color:
+                                  widget.isSending
+                                      ? const Color(0xFF00A36C)
+                                      : theme.colors.destructive,
+                              size: 18,
+                              strokeWidth: 2,
+                            ),
+                            DText(
+                              widget.directionLabel!,
+                              size: DTextSize.sm,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              weight: FontWeight.w400,
+                            ),
+                          ],
                         ),
                       ),
-                    _buildBreadcrumb(theme),
                     DItemList(
                       borderRadius: BorderRadius.circular(14),
                       children:
@@ -122,46 +116,54 @@ class _FolderDetailsState extends State<FolderDetails> {
               ),
             ),
           ),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: theme.colors.background,
+              border: Border(
+                top: BorderSide(color: theme.colors.border, width: 1),
+              ),
+            ),
+            child: Row(children: [_buildBreadcrumb(theme)]),
+          ),
         ],
       ),
     );
   }
 
+  void _popToBreadcrumb(int index) {
+    final crumbs =
+        widget.breadcrumb.isEmpty ? [widget.title] : widget.breadcrumb;
+    var count = crumbs.length - 1 - index;
+    if (count <= 0) return;
+    Navigator.of(context).popUntil((route) {
+      if (count == 0) return true;
+      count--;
+      return false;
+    });
+  }
+
   Widget _buildBreadcrumb(FThemeData theme) {
+    final crumbs =
+        widget.breadcrumb.isEmpty ? [widget.title] : widget.breadcrumb;
+
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 4),
         child: FBreadcrumb(
           children: [
-            FBreadcrumbItem(
-              current: _path.isEmpty,
-              onPress:
-                  _path.isEmpty ? null : () => setState(() => _path = const []),
-              child: DText(
-                widget.title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                color:
-                    _path.isEmpty
-                        ? theme.colors.foreground
-                        : theme.colors.mutedForeground,
-              ),
-            ),
-            for (var i = 0; i < _path.length; i++)
+            for (var i = 0; i < crumbs.length; i++)
               FBreadcrumbItem(
-                current: i == _path.length - 1,
+                current: i == crumbs.length - 1,
                 onPress:
-                    i == _path.length - 1
-                        ? null
-                        : () =>
-                            setState(() => _path = _path.take(i + 1).toList()),
+                    i == crumbs.length - 1 ? null : () => _popToBreadcrumb(i),
                 child: DText(
-                  _path[i],
+                  crumbs[i],
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   color:
-                      i == _path.length - 1
+                      i == crumbs.length - 1
                           ? theme.colors.foreground
                           : theme.colors.mutedForeground,
                 ),
@@ -208,10 +210,69 @@ class _FolderDetailsState extends State<FolderDetails> {
               : null,
       onPressed:
           item.isFolder
-              ? () => setState(() => _path = [..._path, item.name])
+              ? () => _openFolder(item.name)
               : canOpen
               ? () => openStoredFile(item.path)
               : null,
+    );
+  }
+
+  void _openFolder(String folderName) {
+    final subItems = _filterSubItems(folderName);
+    Navigator.of(context).push(
+      CupertinoPageRoute(
+        builder:
+            (_) => FolderDetails(
+              title: folderName,
+              items: subItems,
+              directionLabel: widget.directionLabel,
+              isSending: widget.isSending,
+              breadcrumb: [
+                ...widget.breadcrumb.isEmpty
+                    ? [widget.title]
+                    : widget.breadcrumb,
+                folderName,
+              ],
+            ),
+      ),
+    );
+  }
+
+  List<FolderContentItem> _filterSubItems(String folderName) {
+    return widget.items
+        .where((item) => _isInside(folderName, item))
+        .map((item) => _createSubItem(folderName, item))
+        .toList();
+  }
+
+  bool _isInside(String folderName, FolderContentItem item) {
+    final parts = _partsInsideRoot(item);
+    return parts.isNotEmpty && parts.first == folderName;
+  }
+
+  FolderContentItem _createSubItem(String folderName, FolderContentItem item) {
+    final raw = item.relativePath;
+    final parts =
+        raw == null || raw.trim().isEmpty
+            ? [item.name]
+            : raw
+                .split(RegExp(r'[/\\]'))
+                .where((p) => p.isNotEmpty)
+                .toList();
+
+    if (parts.isNotEmpty && parts.first == widget.title) {
+      parts.removeAt(0);
+    }
+    if (parts.isNotEmpty && parts.first == folderName) {
+      parts.removeAt(0);
+    }
+
+    return FolderContentItem(
+      name: parts.isNotEmpty ? parts.last : item.name,
+      path: item.path,
+      sizeBytes: item.sizeBytes,
+      relativePath: parts.join('/'),
+      mimeWarning: item.mimeWarning,
     );
   }
 
@@ -221,14 +282,12 @@ class _FolderDetailsState extends State<FolderDetails> {
 
     for (final item in widget.items) {
       final parts = _partsInsideRoot(item);
-      if (parts.length <= _path.length) continue;
-      if (!_matchesCurrentPath(parts)) continue;
+      if (parts.isEmpty) continue;
 
-      final nextPart = parts[_path.length];
-      if (parts.length == _path.length + 1) {
-        files.add(_FolderDisplayItem.file(item, nextPart));
+      if (parts.length == 1) {
+        files.add(_FolderDisplayItem.file(item, parts.first));
       } else {
-        folders.putIfAbsent(nextPart, () => []).add(item);
+        folders.putIfAbsent(parts.first, () => []).add(item);
       }
     }
 
@@ -247,14 +306,6 @@ class _FolderDetailsState extends State<FolderDetails> {
     );
     files.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
     return [...folderItems, ...files];
-  }
-
-  bool _matchesCurrentPath(List<String> parts) {
-    if (parts.length <= _path.length) return false;
-    for (var i = 0; i < _path.length; i++) {
-      if (parts[i] != _path[i]) return false;
-    }
-    return true;
   }
 
   List<String> _partsInsideRoot(FolderContentItem item) {

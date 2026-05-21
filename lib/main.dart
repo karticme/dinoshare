@@ -102,10 +102,10 @@ class _DinoshareAppState extends State<DinoshareApp>
 
           SystemChrome.setSystemUIOverlayStyle(
             SystemUiOverlayStyle(
-              statusBarColor: const Color(0x00000000),
+              statusBarColor: themeData.colors.secondary,
               statusBarIconBrightness:
                   isDark ? Brightness.light : Brightness.dark,
-              systemNavigationBarColor: themeData.colors.background,
+              systemNavigationBarColor: themeData.colors.secondary,
               systemNavigationBarIconBrightness:
                   isDark ? Brightness.light : Brightness.dark,
             ),
@@ -120,9 +120,15 @@ class _DinoshareAppState extends State<DinoshareApp>
               ],
               supportedLocales: FLocalizations.supportedLocales,
               home: appOnboardingDone ? const Home() : const Onboarding(),
-              builder: (context, child) => IncomingTransferOverlay(
-                child: child!,
-              ),
+              builder:
+                  (context, child) => IncomingTransferOverlay(
+                    child: SafeArea(
+                      top: false,
+                      left: false,
+                      right: false,
+                      child: child!,
+                    ),
+                  ),
             ),
           );
         },

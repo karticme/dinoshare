@@ -51,6 +51,66 @@ Future<void> _pickShareTargets({
   ];
 
   if (type == ShareTargetType.folder) {
+    if (Platform.isAndroid) {
+      // ── Android: native SAF directory picker via platform channel ──────────
+      try {
+        await _pickerChannel.invokeMethod<void>('closeAll');
+      } catch (_) {}
+      Map<dynamic, dynamic>? result;
+      try {
+        result =
+            await _pickerChannel
+                .invokeMethod<Map<dynamic, dynamic>?>('pickDirectory');
+      } on MissingPluginException {
+        // Native method not registered (e.g. hot restart without full rebuild).
+        // Gracefully return—no folder added.
+        appShareItems.value = nextItems;
+        return;
+      }
+      if (result != null) {
+        final topLevelName = result['topLevelName'] as String;
+        final treeUri = result['treeUri'] as String;
+        if (!nextItems.any((i) => i.path == treeUri)) {
+          final files = (result['files'] as List<dynamic>?) ?? [];
+          if (files.isNotEmpty) {
+            final entries = files.cast<Map<dynamic, dynamic>>();
+            nextItems.add(
+              SelectedShareItem(
+                id: _shareId(nextItems.length),
+                path: treeUri,
+                name: topLevelName,
+                isDirectory: true,
+                files:
+                    entries
+                        .map(
+                          (e) => TransferFileEntry(
+                            sourcePath: e['path'] as String,
+                            storedPath:
+                                (e['uri'] as String?) ?? (e['path'] as String),
+                            relativePath: () {
+                              final relDir = (e['relDir'] as String?) ?? '';
+                              final name = e['name'] as String;
+                              return relDir.isEmpty
+                                  ? '$topLevelName/$name'
+                                  : '$topLevelName/$relDir/$name';
+                            }(),
+                            name: e['name'] as String,
+                            sizeBytes: (e['size'] as num).toInt(),
+                            topLevelName: topLevelName,
+                            isTopLevelDirectory: true,
+                          ),
+                        )
+                        .toList(),
+              ),
+            );
+          }
+        }
+      }
+      appShareItems.value = nextItems;
+      return;
+    }
+
+    // ── Other platforms (macOS etc.): file_picker folder picker ────────────
     final dirPath = await _pickerCall(
       () => FilePicker.platform.getDirectoryPath(
         dialogTitle: 'Pick folder to share',

@@ -209,6 +209,7 @@ class TransferHistoryGroupView extends StatelessWidget {
                           name: file.name,
                           path: file.path,
                           sizeBytes: file.sizeBytes,
+                          relativePath: file.relativePath,
                           mimeWarning: file.mimeWarning,
                         ),
                       )
