@@ -176,13 +176,26 @@ class _FolderDetailsState extends State<FolderDetails> {
 
   Widget _buildItem(BuildContext context, _FolderDisplayItem item) {
     final theme = context.theme;
-    final canOpen =
-        !item.isFolder &&
-        item.path.isNotEmpty &&
-        storedFileExists(item.path) &&
-        !isDangerousFileName(item.name);
+    final fileExists =
+        !item.isFolder && item.path.isNotEmpty && storedFileExists(item.path);
+
+    final bool anyFileExists;
+    if (item.isFolder) {
+      anyFileExists =
+          widget.items.any(
+            (i) =>
+                _isInside(item.name, i) &&
+                i.path.isNotEmpty &&
+                storedFileExists(i.path),
+          );
+    } else {
+      anyFileExists = fileExists;
+    }
+    final isDisabled = !anyFileExists;
+    final canOpen = fileExists && !isDangerousFileName(item.name);
 
     return DItem(
+      disabled: isDisabled,
       padding: EdgeInsets.fromLTRB(8, 8, 16, 8),
       prefix: FileThumbnail(
         path: item.path,

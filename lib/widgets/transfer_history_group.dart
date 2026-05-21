@@ -7,7 +7,6 @@ import 'package:hugeicons/hugeicons.dart';
 
 import 'package:dinoshare/state/state_index.dart';
 import 'package:dinoshare/style/theme.dart';
-import 'package:dinoshare/util/fomart_icon.dart';
 import 'package:dinoshare/util/stored_file.dart';
 import 'package:dinoshare/widgets/file_thumbnail.dart';
 import 'package:dinoshare/widgets/items.dart';
@@ -83,7 +82,17 @@ class TransferHistoryGroupView extends StatelessWidget {
     final directionLabel =
         item.isSending ? 'To ${item.peerName}' : 'From ${item.peerName}';
 
+    final bool anyFileExists;
+    if (file.isFolder) {
+      anyFileExists =
+          file.children.any((c) => c.path.isNotEmpty && storedFileExists(c.path));
+    } else {
+      anyFileExists = fileExists;
+    }
+    final isDisabled = !isTextItem && !anyFileExists;
+
     return DItem(
+      disabled: isDisabled,
       padding: isTextItem ? null : EdgeInsets.fromLTRB(8, 8, 16, 8),
       spacing: 12,
       prefix: isTextItem ? Padding(
@@ -142,7 +151,7 @@ class TransferHistoryGroupView extends StatelessWidget {
         ),
       );
     }
-    if (!file.isFolder && file.path.isNotEmpty && storedFileExists(file.path)) {
+    if (!file.isFolder) {
       return FileThumbnail(
         path: file.path,
         name: file.name,
@@ -152,14 +161,12 @@ class TransferHistoryGroupView extends StatelessWidget {
       );
     }
 
-    final icon = fileTypeIconData(file.name);
     return SizedBox(
       width: 48,
       height: 48,
       child: Center(
         child: HugeIcon(
-          icon:
-              file.isFolder ? HugeIcons.strokeRoundedFolder01 : icon.icon.icon,
+          icon: HugeIcons.strokeRoundedFolder01,
           color: theme.colors.primary,
           size: 28,
         ),

@@ -210,16 +210,25 @@ class TransferDone extends StatelessWidget {
     final isTextItem = session.files.any(
       (f) => f.isText && (f.topLevelName == item.name || f.name == item.name),
     );
-    final canOpen =
-        !item.isFolder &&
-        storedFileExists(item.path) &&
-        !isDangerousFileName(item.name);
+    final fileExists =
+        !item.isFolder && item.path.isNotEmpty && storedFileExists(item.path);
+    final bool anyFileExists;
+    if (item.isFolder) {
+      anyFileExists =
+          item.children
+              .any((c) => c.path.isNotEmpty && storedFileExists(c.path));
+    } else {
+      anyFileExists = fileExists;
+    }
+    final isDisabled = !isTextItem && !anyFileExists;
+    final canOpen = fileExists && !isDangerousFileName(item.name);
     final directionLabel =
         session.role == TransferRole.sending
             ? 'To ${session.peerName}'
             : 'From ${session.peerName}';
 
     return DItem(
+      disabled: isDisabled,
       padding: EdgeInsets.fromLTRB(8, 8, 16, 8),
       prefix:
           isTextItem
