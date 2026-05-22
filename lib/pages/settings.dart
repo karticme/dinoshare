@@ -136,7 +136,12 @@ class _SettingsState extends State<Settings> {
                               spacing: 8,
                               children: [
                                 Padding(
-                                  padding: EdgeInsetsGeometry.fromLTRB(8, 4, 8, 8),
+                                  padding: EdgeInsetsGeometry.fromLTRB(
+                                    8,
+                                    4,
+                                    8,
+                                    8,
+                                  ),
                                   child: DText(
                                     'Select Type',
                                     weight: FontWeight.w500,
@@ -149,7 +154,9 @@ class _SettingsState extends State<Settings> {
                                     borderRadius: BorderRadius.circular(14),
                                     children:
                                         _unitOptions.map((unit) {
-                                          return ValueListenableBuilder<DataUnitType>(
+                                          return ValueListenableBuilder<
+                                            DataUnitType
+                                          >(
                                             valueListenable: appDataUnit,
                                             builder:
                                                 (_, current, _) => DItem(
@@ -161,7 +168,8 @@ class _SettingsState extends State<Settings> {
                                                                 HugeIcons
                                                                     .strokeRoundedTick02,
                                                             size: 22,
-                                                            color: lCustom.success,
+                                                            color:
+                                                                lCustom.success,
                                                             strokeWidth: 2,
                                                           )
                                                           : SizedBox(
@@ -478,6 +486,11 @@ class _SettingsState extends State<Settings> {
                                   size: 16,
                                   color: theme.colors.foreground,
                                 ),
+                                onPressed: () {
+                                  _openSponsorLink(
+                                    "https://dinoshare.kartic.me#faqs",
+                                  );
+                                },
                               ),
                               DItem(
                                 title: Text('Privacy Policy'),
@@ -486,6 +499,11 @@ class _SettingsState extends State<Settings> {
                                   size: 16,
                                   color: theme.colors.foreground,
                                 ),
+                                onPressed: () {
+                                  _openSponsorLink(
+                                    "https://dinoshare.kartic.me/privacy-policy",
+                                  );
+                                },
                               ),
                               DItem(
                                 padding: EdgeInsets.fromLTRB(16, 8, 10, 8),

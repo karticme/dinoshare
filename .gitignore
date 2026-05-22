@@ -128,3 +128,4 @@ skills-lock.json
 CLAUDE.md
 *.DS_Store
 opencode.json
+.opencode

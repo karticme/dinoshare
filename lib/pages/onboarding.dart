@@ -86,7 +86,6 @@ class _OnboardingState extends State<Onboarding> {
         children: [
           Expanded(
             child: Column(
-              spacing: 16,
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -96,15 +95,9 @@ class _OnboardingState extends State<Onboarding> {
                   ),
                   clipBehavior: Clip.hardEdge,
                   child: Image(
-                    image: AssetImage(
-                      platformAsset(
-                        Platform.isAndroid
-                            ? 'icon_foreground.png'
-                            : 'app_icon.png',
-                      ),
-                    ),
-                    width: 96,
-                    height: 96,
+                    image: AssetImage(platformAsset('Dino_Head.png')),
+                    width: 225,
+                    height: 136,
                   ),
                 ),
                 Text(
